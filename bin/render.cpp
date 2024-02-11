@@ -34,7 +34,9 @@ int main(int argc, char* argv[]) {
     args::ValueFlag<double> lonValue(argumentParser, "degrees", "Longitude", {'x', "lon"});
     args::ValueFlag<double> latValue(argumentParser, "degrees", "Latitude", {'y', "lat"});
     args::ValueFlag<double> bearingValue(argumentParser, "degrees", "Bearing", {'b', "bearing"});
+    args::ValueFlag<double> fovValue(argumentParser, "degrees", "FOV", {'f', "fov"});
     args::ValueFlag<double> pitchValue(argumentParser, "degrees", "Pitch", {'p', "pitch"});
+    args::ValueFlag<double> twistValue(argumentParser, "degrees", "Twist", {'T', "twist"});
     args::ValueFlag<uint32_t> widthValue(argumentParser, "pixels", "Image width", {'w', "width"});
     args::ValueFlag<uint32_t> heightValue(argumentParser, "pixels", "Image height", {'h', "height"});
 
@@ -57,7 +59,9 @@ int main(int argc, char* argv[]) {
     const double lon = lonValue ? args::get(lonValue) : 0;
     const double zoom = zoomValue ? args::get(zoomValue) : 0;
     const double bearing = bearingValue ? args::get(bearingValue) : 0;
+    const double fov = fovValue ? args::get(fovValue) : 37;
     const double pitch = pitchValue ? args::get(pitchValue) : 0;
+    const double twist = twistValue ? args::get(twistValue) : 0;
     const double pixelRatio = pixelRatioValue ? args::get(pixelRatioValue) : 1;
 
     const uint32_t width = widthValue ? args::get(widthValue) : 512;
@@ -97,7 +101,7 @@ int main(int argc, char* argv[]) {
     }
 
     map.getStyle().loadURL(style);
-    map.jumpTo(CameraOptions().withCenter(LatLng{lat, lon}).withZoom(zoom).withBearing(bearing).withPitch(pitch));
+    map.jumpTo(CameraOptions().withCenter(LatLng{lat, lon}).withZoom(zoom).withBearing(bearing).withPitch(pitch).withFov(fov).withTwist(twist));
 
     if (debug) {
         map.setDebug(debug ? mbgl::MapDebugOptions::TileBorders | mbgl::MapDebugOptions::ParseStatus

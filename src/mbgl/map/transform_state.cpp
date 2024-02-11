@@ -48,8 +48,14 @@ void TransformState::setProperties(const TransformStateProperties& properties) {
     if (properties.bearing) {
         setBearing(*properties.bearing);
     }
+    if (properties.fov) {
+        setFieldOfView(*properties.fov);
+    }
     if (properties.pitch) {
         setPitch(*properties.pitch);
+    }
+    if (properties.twist) {
+        setTwist(*properties.twist);
     }
     if (properties.xSkew) {
         setXSkew(*properties.xSkew);
@@ -116,7 +122,7 @@ void TransformState::getProjMatrix(mat4& projMatrix, uint16_t nearZ, bool aligne
     // (the distance between[width/2, height/2] and [width/2 + 1, height/2])
     // See https://github.com/mapbox/mapbox-gl-native/pull/15195 for details.
     // See TransformState::fov description: fov = 2 * arctan((height / 2) / (height * 1.5)).
-    const double tanFovAboveCenter = (size.height * 0.5 + offset.y) / (size.height * 1.5);
+    const double tanFovAboveCenter = tan(getFieldOfView() / 2);
     const double tanMultiple = tanFovAboveCenter * std::tan(getPitch());
     assert(tanMultiple < 1);
     // Calculate z distance of the farthest fragment that should be rendered.
@@ -200,7 +206,7 @@ void TransformState::updateCameraState() const {
     const double dy = 0.5 * worldSize - y;
 
     // Set camera orientation and move it to a proper distance from the map
-    camera.setOrientation(getPitch(), getBearing());
+    camera.setOrientation(getPitch(), getBearing(), getTwist());
 
     const vec3 forward = camera.forward();
     const vec3 orbitPosition = {{-forward[0] * cameraToCenterDistance,
@@ -227,7 +233,8 @@ void TransformState::updateStateFromCamera() {
     // Compute bearing and pitch
     double newBearing;
     double newPitch;
-    camera.getOrientation(newPitch, newBearing);
+    double newTwist;
+    camera.getOrientation(newPitch, newBearing, newTwist);
     newPitch = util::clamp(newPitch, minPitch, maxPitch);
 
     // Compute zoom level from the camera altitude
@@ -242,6 +249,7 @@ void TransformState::updateStateFromCamera() {
     setLatLngZoom(latLngFromMercator(mercatorPoint), scaleZoom(newScale));
     setBearing(newBearing);
     setPitch(newPitch);
+    setTwist(newTwist);
 }
 
 FreeCameraOptions TransformState::getFreeCameraOptions() const {
@@ -427,7 +435,8 @@ CameraOptions TransformState::getCameraOptions(const std::optional<EdgeInsets>& 
         .withPadding(padding ? padding : edgeInsets)
         .withZoom(getZoom())
         .withBearing(util::rad2deg(-bearing))
-        .withPitch(util::rad2deg(pitch));
+        .withPitch(util::rad2deg(pitch))
+        .withTwist(util::rad2deg(twist));
 }
 
 // MARK: - EdgeInsets
@@ -586,6 +595,24 @@ void TransformState::setBearing(double val) {
 
 float TransformState::getFieldOfView() const {
     return static_cast<float>(fov);
+}
+
+void TransformState::setFieldOfView(double val) {
+    if (fov != val) {
+        fov = val;
+        requestMatricesUpdate = true;
+    }
+}
+
+double TransformState::getTwist() const {
+    return twist;
+}
+
+void TransformState::setTwist(double val) {
+    if (twist != val) {
+        twist = val;
+        requestMatricesUpdate = true;
+    }
 }
 
 float TransformState::getCameraToCenterDistance() const {

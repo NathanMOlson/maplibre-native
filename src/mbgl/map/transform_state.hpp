@@ -37,8 +37,16 @@ struct TransformStateProperties {
         bearing = val;
         return *this;
     }
+    TransformStateProperties& withFov(const std::optional<double>& val) {
+        fov = val;
+        return *this;
+    }
     TransformStateProperties& withPitch(const std::optional<double>& val) {
         pitch = val;
+        return *this;
+    }
+    TransformStateProperties& withTwist(const std::optional<double>& val) {
+        twist = val;
         return *this;
     }
     TransformStateProperties& withXSkew(const std::optional<double>& val) {
@@ -89,8 +97,10 @@ struct TransformStateProperties {
     std::optional<double> x;
     std::optional<double> y;
     std::optional<double> bearing;
+    std::optional<double> fov;
     std::optional<double> scale;
     std::optional<double> pitch;
+    std::optional<double> twist;
     std::optional<double> xSkew;
     std::optional<double> ySkew;
     std::optional<bool> axonometric;
@@ -173,9 +183,12 @@ public:
     double getBearing() const;
     void setBearing(double);
     float getFieldOfView() const;
+    void setFieldOfView(double);
     float getCameraToCenterDistance() const;
     double getPitch() const;
     void setPitch(double);
+    double getTwist() const;
+    void setTwist(double);
 
     double getXSkew() const;
     void setXSkew(double);
@@ -280,6 +293,7 @@ private:
     // with: `fov = 2 * arctan((height / 2) / (height * 1.5))`
     double fov = 0.6435011087932844;
     double pitch = 0.0;
+    double twist = 0.0;
     double xSkew = 0.0;
     double ySkew = 1.0;
     bool axonometric = false;

@@ -97,6 +97,8 @@ void Transform::easeTo(const CameraOptions& camera, const AnimationOptions& anim
     double zoom = camera.zoom.value_or(getZoom());
     double bearing = camera.bearing ? util::deg2rad(-*camera.bearing) : getBearing();
     double pitch = camera.pitch ? util::deg2rad(*camera.pitch) : getPitch();
+    double twist = camera.twist ? util::deg2rad(*camera.twist) : getTwist();
+    double fov = camera.fov ? util::deg2rad(*camera.fov) : getFieldOfView();
 
     if (std::isnan(zoom) || std::isnan(bearing) || std::isnan(pitch)) {
         if (animation.transitionFinishFn) {
@@ -162,6 +164,8 @@ void Transform::easeTo(const CameraOptions& camera, const AnimationOptions& anim
             if (pitch != startPitch || maxPitch < startPitch) {
                 state.setPitch(std::min(maxPitch, util::interpolate(startPitch, pitch, t)));
             }
+            state.setFieldOfView(fov);
+            state.setTwist(twist);
         },
         duration);
 }
@@ -429,6 +433,14 @@ double Transform::getPitch() const {
     return state.getPitch();
 }
 
+double Transform::getTwist() const {
+    return state.getTwist();
+}
+
+double Transform::getFieldOfView() const {
+    return state.getFieldOfView();
+}
+
 // MARK: - North Orientation
 
 void Transform::setNorthOrientation(NorthOrientation orientation) {
@@ -631,11 +643,11 @@ LatLng Transform::screenCoordinateToLatLng(const ScreenCoordinate& point, LatLng
     return state.screenCoordinateToLatLng(flippedPoint, wrapMode);
 }
 
-double Transform::getMaxPitchForEdgeInsets(const EdgeInsets& insets) const {
-    double centerOffsetY = 0.5 * (insets.top() - insets.bottom()); // See TransformState::getCenterOffset.
+double Transform::getMaxPitchForEdgeInsets(const EdgeInsets& /*insets*/) const {
+    //double centerOffsetY = 0.5 * (insets.top() - insets.bottom()); // See TransformState::getCenterOffset.
 
-    const auto height = state.getSize().height;
-    assert(height);
+    //const auto height = state.getSize().height;
+    //assert(height);
     // For details, see description at
     // https://github.com/mapbox/mapbox-gl-native/pull/15195 The definition of
     // half of TransformState::fov with no inset, is: fov = arctan((height / 2)
@@ -644,7 +656,7 @@ double Transform::getMaxPitchForEdgeInsets(const EdgeInsets& insets) const {
     // tangentOfFovAboveCenterAngle = (h/2 + centerOffsetY) / (height
     // * 1.5). 1.03 is a bit extra added to prevent parallel ground to viewport
     // clipping plane.
-    const double tangentOfFovAboveCenterAngle = 1.03 * (height / 2.0 + centerOffsetY) / (1.5 * height);
+    const double tangentOfFovAboveCenterAngle = 1.03 * tan(getFieldOfView()/2);
     const double fovAboveCenter = std::atan(tangentOfFovAboveCenterAngle);
     return M_PI * 0.5 - fovAboveCenter;
     // e.g. Maximum pitch of 60 degrees is when perspective center's offset from
