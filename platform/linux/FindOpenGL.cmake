@@ -543,7 +543,7 @@ if(OPENGL_EGL_INCLUDE_DIR)
 endif()
 cmake_print_variables(_OpenGL_REQUIRED_VARS)
 
-include(${CMAKE_CURRENT_LIST_DIR}/FindPackageHandleStandardArgs.cmake)
+include(FindPackageHandleStandardArgs.cmake)
 if (CMAKE_FIND_PACKAGE_NAME STREQUAL "GLU")
   # FindGLU include()'s this module. It's an old pattern, but rather than
   # trying to suppress this from outside the module (which is then sensitive to
