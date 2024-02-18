@@ -183,12 +183,15 @@ OPENGL_gl_LIBRARY to use OpenGL with X11 on OSX.
 #]=======================================================================]
 
 set(_OpenGL_REQUIRED_VARS OPENGL_gl_LIBRARY)
+include(CMakePrintHelpers)
 
 # Provide OPENGL_USE_<C> variables for each component.
 foreach(component ${OpenGL_FIND_COMPONENTS})
   string(TOUPPER ${component} _COMPONENT)
   set(OPENGL_USE_${_COMPONENT} 1)
+  cmake_print_variables(OPENGL_USE_${_COMPONENT})
 endforeach()
+cmake_print_variables(OPENGL_USE_OPENGL)
 
 set(_OpenGL_CACHE_VARS)
 
