@@ -183,15 +183,12 @@ OPENGL_gl_LIBRARY to use OpenGL with X11 on OSX.
 #]=======================================================================]
 
 set(_OpenGL_REQUIRED_VARS OPENGL_gl_LIBRARY)
-include(CMakePrintHelpers)
 
 # Provide OPENGL_USE_<C> variables for each component.
 foreach(component ${OpenGL_FIND_COMPONENTS})
   string(TOUPPER ${component} _COMPONENT)
   set(OPENGL_USE_${_COMPONENT} 1)
-  cmake_print_variables(OPENGL_USE_${_COMPONENT})
 endforeach()
-cmake_print_variables(OPENGL_USE_OPENGL)
 
 set(_OpenGL_CACHE_VARS)
 
@@ -397,9 +394,7 @@ else()
   # FPHSA cannot handle "this OR that is required", so we conditionally set what
   # it must look for.  First clear any previous config we might have done:
   
-  cmake_print_variables(_OpenGL_REQUIRED_VARS)
   set(_OpenGL_REQUIRED_VARS)
-  cmake_print_variables(_OpenGL_REQUIRED_VARS)
 
   # now we append the libraries as appropriate.  The complicated logic
   # basically comes down to "use libOpenGL when we can, and add in specific
@@ -422,7 +417,6 @@ else()
           OPENGL_USE_EGL))
     list(APPEND _OpenGL_REQUIRED_VARS OPENGL_opengl_LIBRARY)
   endif()
-  cmake_print_variables(_OpenGL_REQUIRED_VARS)
 
   # GLVND GLX library.  Preferred when available.
   if((NOT OPENGL_USE_OPENGL AND
@@ -541,7 +535,6 @@ endif()
 if(OPENGL_EGL_INCLUDE_DIR)
   set(OPENGL_EGL_INCLUDE_DIRS ${OPENGL_EGL_INCLUDE_DIR})
 endif()
-cmake_print_variables(_OpenGL_REQUIRED_VARS)
 
 include(FindPackageHandleStandardArgs)
 if (CMAKE_FIND_PACKAGE_NAME STREQUAL "GLU")
