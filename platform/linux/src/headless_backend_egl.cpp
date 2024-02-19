@@ -7,6 +7,7 @@
 
 #include <cassert>
 #include <sstream>
+#include <wayland-client.h>
 
 namespace mbgl {
 namespace gl {
@@ -19,10 +20,12 @@ private:
     struct Key {
         explicit Key() = default;
     };
+    struct wl_display* native_display;
 
 public:
     EGLDisplayConfig(Key) {
-        display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+        native_display = wl_display_connect(NULL);
+        display = eglGetDisplay(native_display);
         if (display == EGL_NO_DISPLAY) {
             throw std::runtime_error("Failed to obtain a valid EGL display.\n");
         }
@@ -48,7 +51,10 @@ public:
         }
     }
 
-    ~EGLDisplayConfig() { eglTerminate(display); }
+    ~EGLDisplayConfig() {
+        eglTerminate(display);
+        wl_display_disconnect(native_display);
+    }
 
     static std::shared_ptr<const EGLDisplayConfig> create() {
         static std::weak_ptr<const EGLDisplayConfig> instance;

@@ -1,6 +1,7 @@
 option(MLN_WITH_X11 "Build with X11 Support" ON)
 option(MLN_WITH_WAYLAND "Build with Wayland Support" OFF)
 
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR})
 find_package(CURL REQUIRED)
 find_package(ICU OPTIONAL_COMPONENTS i18n)
 find_package(ICU OPTIONAL_COMPONENTS uc)
@@ -9,6 +10,9 @@ find_package(PNG REQUIRED)
 find_package(PkgConfig REQUIRED)
 if (MLN_WITH_X11)
     find_package(X11 REQUIRED)
+endif ()
+if (MLN_WITH_WAYLAND)
+    find_package(Wayland REQUIRED)
 endif ()
 find_package(Threads REQUIRED)
 
@@ -61,7 +65,6 @@ target_sources(
 )
 
 if(MLN_WITH_EGL)
-    list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR})
     find_package(OpenGL REQUIRED EGL)
     target_sources(
         mbgl-core
@@ -139,6 +142,7 @@ target_link_libraries(
         ${JPEG_LIBRARIES}
         ${LIBUV_LIBRARIES}
         ${X11_LIBRARIES}
+        ${WAYLAND_CLIENT_LIBRARY}
         ${CMAKE_THREAD_LIBS_INIT}
         ${WEBP_LIBRARIES}
         $<$<NOT:$<BOOL:${MLN_USE_BUILTIN_ICU}>>:ICU::i18n>
