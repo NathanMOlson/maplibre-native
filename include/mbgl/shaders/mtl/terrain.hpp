@@ -66,15 +66,6 @@ struct FragmentStage {
     float elevation;
 };
 
-// Sample DEM elevation from the DEM texture
-// DEM encoding: elevation = -10000 + ((R * 256 * 256 + G * 256 + B) * 0.1)
-float get_elevation_from_dem(float4 rgba) {
-    // Unpack RGB channels to elevation value
-    // MapLibre uses Mapbox Terrain RGB encoding:
-    // height = -10000 + ((R * 256 * 256 + G * 256 + B) * 0.1)
-    return -10000.0 + ((rgba.r * 255.0 * 256.0 * 256.0 + rgba.g * 255.0 * 256.0 + rgba.b * 255.0) * 0.1);
-}
-
 FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
                                 device const uint32_t& uboIndex [[buffer(idGlobalUBOIndex)]],
                                 device const TerrainDrawableUBO* drawableVector [[buffer(idTerrainDrawableUBO)]],
@@ -89,9 +80,8 @@ FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
     float2 pos = float2(vertx.pos);
     float2 uv = pos / 8192.0;
 
-    // Sample DEM texture to get elevation
-    float4 demSample = demTexture.sample(demSampler, uv);
-    float elevation = get_elevation_from_dem(demSample);
+    // Sample DEM texture to get elevation using common function
+    float elevation = get_elevation(demTexture, demSampler, uv);
 
     // Apply exaggeration and offset
     elevation = (elevation + props.elevation_offset) * props.exaggeration;
