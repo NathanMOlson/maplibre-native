@@ -76,6 +76,11 @@ public:
     bool isEnabled() const;
 
     /**
+     * @brief Get the terrain implementation
+     */
+    const Immutable<style::Terrain::Impl>& getImpl() const { return impl; }
+
+    /**
      * @brief Get the terrain mesh for a specific tile
      *
      * Returns a cached mesh or generates a new one. The mesh is a regular grid

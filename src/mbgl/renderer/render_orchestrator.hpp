@@ -26,6 +26,7 @@ namespace mbgl {
 class ChangeRequest;
 class RendererObserver;
 class RenderSource;
+class RenderTerrain;
 class UpdateParameters;
 class RenderStaticData;
 class RenderedQueryOptions;
@@ -208,6 +209,7 @@ private:
     std::unordered_map<std::string, std::unique_ptr<RenderSource>> renderSources;
     std::unordered_map<std::string, std::unique_ptr<RenderLayer>> renderLayers;
     RenderLight renderLight;
+    std::unique_ptr<RenderTerrain> renderTerrain;
 
     CrossTileSymbolIndex crossTileSymbolIndex;
     PlacementController placementController;

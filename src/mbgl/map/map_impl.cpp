@@ -113,6 +113,11 @@ void Map::Impl::onUpdate() {
 
     transform.updateTransitions(timePoint);
 
+    std::optional<Immutable<style::Terrain::Impl>> terrainImpl;
+    if (auto* terrain = style->impl->getTerrain()) {
+        terrainImpl = terrain->impl;
+    }
+
     UpdateParameters params = {style->impl->isLoaded(),
                                mode,
                                pixelRatio,
@@ -124,6 +129,7 @@ void Map::Impl::onUpdate() {
                                style->impl->areSpritesLoaded(),
                                style->impl->getTransitionOptions(),
                                style->impl->getLight()->impl,
+                               terrainImpl,
                                style->impl->getImageImpls(),
                                style->impl->getSourceImpls(),
                                style->impl->getLayerImpls(),

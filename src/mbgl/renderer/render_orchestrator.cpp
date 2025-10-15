@@ -8,6 +8,7 @@
 #include <mbgl/renderer/render_layer.hpp>
 #include <mbgl/renderer/render_static_data.hpp>
 #include <mbgl/renderer/render_tree.hpp>
+#include <mbgl/renderer/render_terrain.hpp>
 #include <mbgl/renderer/update_parameters.hpp>
 #include <mbgl/renderer/upload_parameters.hpp>
 #include <mbgl/renderer/pattern_atlas.hpp>
@@ -213,6 +214,16 @@ std::unique_ptr<RenderTree> RenderOrchestrator::createRenderTree(
 
     if (lightChanged || zoomChanged || renderLight.hasTransition()) {
         renderLight.evaluate(evaluationParameters);
+    }
+
+    // Update terrain.
+    if (updateParameters->terrain) {
+        if (!renderTerrain || renderTerrain->getImpl() != *updateParameters->terrain) {
+            renderTerrain = std::make_unique<RenderTerrain>(*updateParameters->terrain);
+        }
+        renderTerrain->update(*updateParameters);
+    } else if (renderTerrain) {
+        renderTerrain.reset();
     }
 
     const ImageDifference imageDiff = diffImages(imageImpls, updateParameters->images);
