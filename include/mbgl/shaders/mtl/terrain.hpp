@@ -50,7 +50,7 @@ struct ShaderSource<BuiltIn::TerrainShader, gfx::Backend::Type::Metal> {
 
     static const std::array<AttributeInfo, 2> attributes;
     static constexpr std::array<AttributeInfo, 0> instanceAttributes{};
-    static const std::array<TextureInfo, 1> textures;
+    static const std::array<TextureInfo, 2> textures;
 
     static constexpr auto prelude = terrainShaderPrelude;
     static constexpr auto source = R"(
@@ -110,39 +110,41 @@ FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
 }
 
 half4 fragment fragmentMain(FragmentStage in [[stage_in]],
-                            device const TerrainEvaluatedPropsUBO& props [[buffer(idTerrainEvaluatedPropsUBO)]]) {
+                            device const TerrainEvaluatedPropsUBO& props [[buffer(idTerrainEvaluatedPropsUBO)]],
+                            texture2d<float, access::sample> mapTexture [[texture(1)]],
+                            sampler mapSampler [[sampler(1)]]) {
 #if defined(OVERDRAW_INSPECTOR)
     return half4(1.0);
 #endif
 
-    // Get elevation in meters (after exaggeration)
-    float elevation = in.elevation;
+    // Sample the map texture (render-to-texture output) for the surface color
+    // Note: Y-coordinate is flipped (1.0 - y) to match OpenGL convention
+    float4 mapColor = mapTexture.sample(mapSampler, float2(in.uv.x, 1.0 - in.uv.y));
 
-    // Color code by elevation for visualization
-    // Typical Alps elevations: 500m (valleys) to 4000m (peaks)
-    // Normalize to [0, 1] range for this area
+    // If map texture has valid data, use it; otherwise fall back to elevation-based coloring
+    // Check if alpha is > 0 to detect valid map data
+    if (mapColor.a > 0.01) {
+        return half4(mapColor);
+    }
+
+    // Fallback: elevation-based color gradient for debugging
+    float elevation = in.elevation;
     float normalizedElevation = clamp((elevation - 500.0) / 3500.0, 0.0, 1.0);
 
-    // Create elevation-based color gradient:
-    // Blue (low) -> Green (mid) -> Brown (high) -> White (peaks)
     float3 color;
     if (normalizedElevation < 0.33) {
-        // Low elevation: blue to green
         float t = normalizedElevation / 0.33;
         color = mix(float3(0.2, 0.4, 0.8), float3(0.3, 0.7, 0.3), t);
     } else if (normalizedElevation < 0.66) {
-        // Mid elevation: green to brown
         float t = (normalizedElevation - 0.33) / 0.33;
         color = mix(float3(0.3, 0.7, 0.3), float3(0.6, 0.5, 0.3), t);
     } else {
-        // High elevation: brown to white
         float t = (normalizedElevation - 0.66) / 0.34;
         color = mix(float3(0.6, 0.5, 0.3), float3(0.95, 0.95, 0.95), t);
     }
 
-    // Add grid pattern to show tile boundaries
     float gridLine = step(0.98, fract(in.uv.x * 4.0)) + step(0.98, fract(in.uv.y * 4.0));
-    color = mix(color, float3(1.0, 1.0, 1.0), gridLine * 0.5); // Semi-transparent white grid
+    color = mix(color, float3(1.0, 1.0, 1.0), gridLine * 0.5);
 
     return half4(half3(color), 1.0);
 }

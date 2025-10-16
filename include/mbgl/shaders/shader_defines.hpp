@@ -333,6 +333,7 @@ enum {
 
 enum {
     idTerrainDEMTexture,
+    idTerrainMapTexture,
     terrainTextureCount
 };
 

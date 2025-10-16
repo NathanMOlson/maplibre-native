@@ -329,6 +329,65 @@ std::shared_ptr<gfx::Texture2D> RenderTerrain::createDEMTexture(gfx::Context& co
     return texture;
 }
 
+std::shared_ptr<gfx::Texture2D> RenderTerrain::createTestMapTexture(gfx::Context& context) {
+    // Create a simple test texture with a checkerboard pattern
+    // This will be replaced with actual render-to-texture output later
+    const uint32_t size = 512; // 512x512 texture
+    const uint32_t checkerSize = 64; // Size of each checker square
+
+    // Create RGBA pixel data
+    auto imageData = std::make_unique<uint8_t[]>(size * size * 4);
+
+    for (uint32_t y = 0; y < size; y++) {
+        for (uint32_t x = 0; x < size; x++) {
+            uint32_t index = (y * size + x) * 4;
+
+            // Create checkerboard pattern
+            bool isWhite = ((x / checkerSize) + (y / checkerSize)) % 2 == 0;
+
+            if (isWhite) {
+                // White with full alpha
+                imageData[index + 0] = 255; // R
+                imageData[index + 1] = 255; // G
+                imageData[index + 2] = 255; // B
+                imageData[index + 3] = 255; // A
+            } else {
+                // Light blue with full alpha
+                imageData[index + 0] = 100; // R
+                imageData[index + 1] = 150; // G
+                imageData[index + 2] = 255; // B
+                imageData[index + 3] = 255; // A
+            }
+        }
+    }
+
+    // Create PremultipliedImage from raw data
+    auto image = std::make_shared<PremultipliedImage>(
+        Size{size, size},
+        std::move(imageData)
+    );
+
+    // Create texture
+    auto texture = context.createTexture2D();
+    if (!texture) {
+        Log::Error(Event::Render, "Failed to create test map texture");
+        return nullptr;
+    }
+
+    // Set the image
+    texture->setImage(image);
+
+    // Configure sampler
+    texture->setSamplerConfiguration({
+        .filter = gfx::TextureFilterType::Linear,
+        .wrapU = gfx::TextureWrapType::Repeat,
+        .wrapV = gfx::TextureWrapType::Repeat
+    });
+
+    Log::Info(Event::Render, "Test map texture created: " + std::to_string(size) + "x" + std::to_string(size));
+    return texture;
+}
+
 std::unique_ptr<gfx::Drawable> RenderTerrain::createDrawableForTile(gfx::Context& context,
                                                                       gfx::ShaderRegistry& shaders,
                                                                       const OverscaledTileID& tileID,
@@ -387,6 +446,16 @@ std::unique_ptr<gfx::Drawable> RenderTerrain::createDrawableForTile(gfx::Context
         Log::Info(Event::Render, "DEM texture bound to drawable for tile " + util::toString(tileID));
     } else {
         Log::Warning(Event::Render, "No DEM texture provided for tile " + util::toString(tileID));
+    }
+
+    // Create a test map texture (simple colored texture for now)
+    // This will be replaced with actual render-to-texture later
+    auto mapTexture = createTestMapTexture(context);
+    if (mapTexture) {
+        builder->setTexture(mapTexture, 1); // Texture index 1 for map
+        Log::Info(Event::Render, "Test map texture bound to drawable for tile " + util::toString(tileID));
+    } else {
+        Log::Warning(Event::Render, "Failed to create test map texture for tile " + util::toString(tileID));
     }
 
     // Flush to create the drawable

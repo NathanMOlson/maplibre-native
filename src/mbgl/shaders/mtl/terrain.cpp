@@ -10,8 +10,9 @@ const std::array<AttributeInfo, 2> TerrainShaderSource::attributes = {
     AttributeInfo{terrainUBOCount + 0, gfx::AttributeDataType::Short2, idTerrainPosVertexAttribute},
     AttributeInfo{terrainUBOCount + 1, gfx::AttributeDataType::Short2, idTerrainTexturePosVertexAttribute},
 };
-const std::array<TextureInfo, 1> TerrainShaderSource::textures = {
+const std::array<TextureInfo, 2> TerrainShaderSource::textures = {
     TextureInfo{0, idTerrainDEMTexture},
+    TextureInfo{1, idTerrainMapTexture},
 };
 
 } // namespace shaders
