@@ -158,11 +158,11 @@ public:
 
     const ZoomHistory& getZoomHistory() const { return zoomHistory; }
 
+    RenderSource* getRenderSource(const std::string& id) const;
+
 private:
     bool isLoaded() const;
     bool hasTransitions(TimePoint) const;
-
-    RenderSource* getRenderSource(const std::string& id) const;
 
     RenderLayer* getRenderLayer(const std::string& id);
     const RenderLayer* getRenderLayer(const std::string& id) const;

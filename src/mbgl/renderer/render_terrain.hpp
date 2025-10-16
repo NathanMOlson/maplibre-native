@@ -52,6 +52,7 @@ public:
 
     /**
      * @brief Update terrain rendering (create/update drawables)
+     * @param orchestrator Render orchestrator for accessing render sources
      * @param shaders Shader registry for getting terrain shader
      * @param context Graphics context for creating drawables and layer groups
      * @param state Transform state
@@ -59,7 +60,8 @@ public:
      * @param renderTree Render tree
      * @param changes Vector to collect change requests
      */
-    void update(gfx::ShaderRegistry& shaders,
+    void update(class RenderOrchestrator& orchestrator,
+                gfx::ShaderRegistry& shaders,
                 gfx::Context& context,
                 const TransformState& state,
                 const std::shared_ptr<UpdateParameters>& updateParameters,

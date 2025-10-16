@@ -4,6 +4,7 @@
 #include <mbgl/renderer/render_pass.hpp>
 #include <mbgl/renderer/render_tree.hpp>
 #include <mbgl/renderer/render_static_data.hpp>
+#include <mbgl/renderer/render_orchestrator.hpp>
 #include <mbgl/renderer/change_request.hpp>
 #include <mbgl/renderer/layer_group.hpp>
 #include <mbgl/gfx/context.hpp>
@@ -36,12 +37,23 @@ void RenderTerrain::update(const UpdateParameters& parameters) {
     }
 }
 
-void RenderTerrain::update(gfx::ShaderRegistry& shaders,
+void RenderTerrain::update(RenderOrchestrator& orchestrator,
+                           gfx::ShaderRegistry& shaders,
                            gfx::Context& context,
                            const TransformState& /*state*/,
                            const std::shared_ptr<UpdateParameters>& /*updateParameters*/,
                            const RenderTree& /*renderTree*/,
                            UniqueChangeRequestVec& changes) {
+    // Find the DEM source if we haven't already
+    if (!demSource && !impl->sourceID.empty()) {
+        demSource = orchestrator.getRenderSource(impl->sourceID);
+        if (demSource) {
+            Log::Info(Event::Render, "Terrain found DEM source: " + impl->sourceID);
+        } else {
+            Log::Warning(Event::Render, "Terrain could not find DEM source: " + impl->sourceID);
+        }
+    }
+
     // Create layer group if we don't have one
     if (!layerGroup) {
         if (auto layerGroup_ = context.createLayerGroup(TERRAIN_LAYER_INDEX, /*initialCapacity=*/1, "terrain")) {
