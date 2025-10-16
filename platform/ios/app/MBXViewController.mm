@@ -2334,7 +2334,8 @@ CLLocationCoordinate2D randomWorldCoordinate(void) {
     self.styleURLs = [NSMutableArray array];
 
 
-
+    [self.styleNames addObject:@"Terrain "];
+    [self.styleURLs addObject:[NSURL URLWithString:@"https://styles.phoenixmaps.app/terrain-test-style.json"]];
 
     /// Style that does not require an `apiKey` nor any further configuration
     [self.styleNames addObject:@"MapLibre Basic"];
