@@ -80,19 +80,32 @@ FragmentStage vertex vertexMain(thread const VertexStage vertx [[stage_in]],
     float2 pos = float2(vertx.pos);
     float2 uv = pos / 8192.0;
 
-    // Sample DEM texture to get elevation using common function
-    float elevation = get_elevation(demTexture, demSampler, uv);
+    // Sample DEM texture to get raw RGBA values
+    float4 demSample = demTexture.sample(demSampler, uv);
 
-    // Apply exaggeration and offset
-    elevation = (elevation + props.elevation_offset) * props.exaggeration;
+    // Decode Mapbox Terrain RGB format to get elevation in meters
+    // Format: height = -10000 + ((R*256*256 + G*256 + B) * 0.1)
+    // DEM values are in range [0, 1] so convert back to [0, 255]
+    float r = demSample.r * 255.0;
+    float g = demSample.g * 255.0;
+    float b = demSample.b * 255.0;
+
+    // Calculate elevation in meters
+    float elevationMeters = -10000.0 + ((r * 256.0 * 256.0 + g * 256.0 + b) * 0.1);
+
+    // Apply exaggeration for visible relief (default: 1.0, can be set higher for dramatic effect)
+    float elevation = elevationMeters * props.exaggeration;
 
     // Create 3D position with elevation as Z coordinate
     float4 position = drawable.matrix * float4(pos.x, pos.y, elevation, 1.0);
 
+    // Pack elevation value for fragment shader visualization
+    float packedValue = elevation;
+
     return {
         .position    = position,
         .uv          = uv,
-        .elevation   = elevation,
+        .elevation   = packedValue,  // Pass packed RGBA to detect any non-zero values
     };
 }
 
@@ -102,11 +115,34 @@ half4 fragment fragmentMain(FragmentStage in [[stage_in]],
     return half4(1.0);
 #endif
 
-    // For now, render a simple gradient based on elevation
-    // In a full implementation, this would sample the base map texture
-    // and apply lighting calculations
-    float normalizedElevation = clamp(in.elevation / 5000.0, 0.0, 1.0);
-    float3 color = mix(float3(0.2, 0.5, 0.2), float3(0.9, 0.9, 0.9), normalizedElevation);
+    // Get elevation in meters (after exaggeration)
+    float elevation = in.elevation;
+
+    // Color code by elevation for visualization
+    // Typical Alps elevations: 500m (valleys) to 4000m (peaks)
+    // Normalize to [0, 1] range for this area
+    float normalizedElevation = clamp((elevation - 500.0) / 3500.0, 0.0, 1.0);
+
+    // Create elevation-based color gradient:
+    // Blue (low) -> Green (mid) -> Brown (high) -> White (peaks)
+    float3 color;
+    if (normalizedElevation < 0.33) {
+        // Low elevation: blue to green
+        float t = normalizedElevation / 0.33;
+        color = mix(float3(0.2, 0.4, 0.8), float3(0.3, 0.7, 0.3), t);
+    } else if (normalizedElevation < 0.66) {
+        // Mid elevation: green to brown
+        float t = (normalizedElevation - 0.33) / 0.33;
+        color = mix(float3(0.3, 0.7, 0.3), float3(0.6, 0.5, 0.3), t);
+    } else {
+        // High elevation: brown to white
+        float t = (normalizedElevation - 0.66) / 0.34;
+        color = mix(float3(0.6, 0.5, 0.3), float3(0.95, 0.95, 0.95), t);
+    }
+
+    // Add grid pattern to show tile boundaries
+    float gridLine = step(0.98, fract(in.uv.x * 4.0)) + step(0.98, fract(in.uv.y * 4.0));
+    color = mix(color, float3(1.0, 1.0, 1.0), gridLine * 0.5); // Semi-transparent white grid
 
     return half4(half3(color), 1.0);
 }

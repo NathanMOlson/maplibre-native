@@ -294,6 +294,11 @@ CLLocationCoordinate2D randomWorldCoordinate(void) {
     // saving and restoring when the application's state changes.
     self.currentState =  [MBXStateManager sharedManager].currentState;
 
+    [MLNLoggingConfiguration sharedConfiguration].loggingLevel = MLNLoggingLevelVerbose;
+    [MLNLoggingConfiguration sharedConfiguration].handler = ^(MLNLoggingLevel level, NSString *fileName, NSUInteger line, NSString *message) {
+        NSLog(@"%@:%ld %@", fileName, line, message);
+    };
+
     if (!self.currentState) {
         // Create a new state with the below default values
         self.currentState = [[MBXState alloc] init];
@@ -305,6 +310,13 @@ CLLocationCoordinate2D randomWorldCoordinate(void) {
         self.mapView.showsAttributionButton = YES;
         self.zoomLevelOrnamentEnabled = NO;
         self.frameTimeGraphEnabled = NO;
+        self.mapView.pitchEnabled = YES;
+//        [self.mapView setCenterCoordinate:C zoomLevel:10 direction:0 animated:NO];
+        MLNMapCamera *camera = [MLNMapCamera cameraLookingAtCenterCoordinate:CLLocationCoordinate2DMake(47.2586, 11.38481)
+                                                              acrossDistance:10000
+                                                                       pitch:80
+                                                                     heading:0];
+        [self.mapView setCamera:camera withDuration:0 animationTimingFunction:nil completionHandler:nil];
     } else {
         // Revert to the previously saved state
         [self restoreMapState:nil];
@@ -2335,7 +2347,8 @@ CLLocationCoordinate2D randomWorldCoordinate(void) {
 
 
     [self.styleNames addObject:@"Terrain "];
-    [self.styleURLs addObject:[NSURL URLWithString:@"https://demotiles.maplibre.org/styles/osm-bright-gl-terrain/style.json"]];
+    // [self.styleURLs addObject:[NSURL URLWithString:@"https://demotiles.maplibre.org/styles/osm-bright-gl-terrain/style.json"]];
+    [self.styleURLs addObject:[NSURL URLWithString:@"https://styles.phoenixmaps.app/terrain-test-style.json"]];
 
     /// Style that does not require an `apiKey` nor any further configuration
     [self.styleNames addObject:@"MapLibre Basic"];

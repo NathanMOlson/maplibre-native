@@ -23,6 +23,8 @@
 #include <mbgl/gfx/drawable_tweaker.hpp>
 #include <mbgl/renderer/layer_tweaker.hpp>
 #include <mbgl/renderer/render_target.hpp>
+#include <mbgl/renderer/render_terrain.hpp>
+#include <mbgl/renderer/layers/terrain_layer_tweaker.hpp>
 
 #if MLN_RENDER_BACKEND_METAL
 #include <mbgl/mtl/renderer_backend.hpp>
@@ -253,6 +255,16 @@ void Renderer::Impl::render(const RenderTree& renderTree, const std::shared_ptr<
             layerGroup.runTweakers(renderTree, parameters);
             parameters.currentLayer++;
         });
+
+        // Run terrain tweaker if terrain is enabled
+        if (auto* terrain = orchestrator.getRenderTerrain()) {
+            if (auto* terrainTweaker = terrain->getTweaker()) {
+                if (const auto& layerGroup = terrain->getLayerGroup()) {
+                    terrainTweaker->execute(*layerGroup, parameters);
+                }
+            }
+        }
+
         parameters.currentLayer = 0;
         orchestrator.visitDebugLayerGroups([&](LayerGroupBase& layerGroup) {
             layerGroup.runTweakers(renderTree, parameters);

@@ -12,6 +12,7 @@
 #include <optional>
 #include <vector>
 #include <cstdint>
+#include <unordered_map>
 
 namespace mbgl {
 
@@ -21,6 +22,8 @@ class RenderSource;
 class PaintParameters;
 class RenderTree;
 class LayerGroupBase;
+class TerrainLayerTweaker;
+class DEMData;
 using LayerGroupBasePtr = std::shared_ptr<LayerGroupBase>;
 using UniqueChangeRequestVec = std::vector<std::unique_ptr<class ChangeRequest>>;
 
@@ -28,6 +31,7 @@ namespace gfx {
 class Context;
 class Drawable;
 class ShaderRegistry;
+class Texture2D;
 }
 
 /**
@@ -131,6 +135,11 @@ public:
      */
     const LayerGroupBasePtr& getLayerGroup() const { return layerGroup; }
 
+    /**
+     * @brief Get the terrain layer tweaker
+     */
+    TerrainLayerTweaker* getTweaker() const { return tweaker.get(); }
+
     // Immutable terrain configuration
     Immutable<style::Terrain::Impl> impl;
 
@@ -142,14 +151,6 @@ private:
      * to prevent stitching artifacts between tiles.
      */
     void generateMesh(gfx::Context& context);
-
-    /**
-     * @brief Create a drawable for terrain rendering
-     * @param context Graphics context
-     * @param shaders Shader registry
-     * @return Unique pointer to created drawable
-     */
-    std::unique_ptr<gfx::Drawable> createDrawable(gfx::Context& context, gfx::ShaderRegistry& shaders);
 
     /**
      * @brief Find the DEM source for the current terrain
@@ -167,6 +168,12 @@ private:
     // Layer group for terrain drawables
     LayerGroupBasePtr layerGroup;
 
+    // Terrain layer tweaker for UBO updates
+    std::unique_ptr<TerrainLayerTweaker> tweaker;
+
+    // Track which tiles have terrain drawables
+    std::unordered_map<OverscaledTileID, bool> tilesWithDrawables;
+
     // Mesh resolution (vertices per side)
     static constexpr size_t MESH_SIZE = 128;
 
@@ -174,7 +181,29 @@ private:
     RenderSource* demSource = nullptr;
 
     // Layer index (terrain renders early in 3D pass, use negative index)
-    static constexpr int32_t TERRAIN_LAYER_INDEX = -1000;
+    // TEMP: Using positive index to render ON TOP for debugging visibility
+    static constexpr int32_t TERRAIN_LAYER_INDEX = 10000;
+
+    /**
+     * @brief Create a DEM texture from DEMData
+     * @param context Graphics context
+     * @param demData DEM elevation data
+     * @return Shared pointer to created texture
+     */
+    std::shared_ptr<gfx::Texture2D> createDEMTexture(gfx::Context& context, const DEMData& demData);
+
+    /**
+     * @brief Create a terrain drawable for a specific tile
+     * @param context Graphics context
+     * @param shaders Shader registry
+     * @param tileID Tile ID for this drawable
+     * @param demTexture DEM texture for elevation data
+     * @return Unique pointer to created drawable
+     */
+    std::unique_ptr<gfx::Drawable> createDrawableForTile(gfx::Context& context,
+                                                          gfx::ShaderRegistry& shaders,
+                                                          const OverscaledTileID& tileID,
+                                                          std::shared_ptr<gfx::Texture2D> demTexture);
 };
 
 } // namespace mbgl

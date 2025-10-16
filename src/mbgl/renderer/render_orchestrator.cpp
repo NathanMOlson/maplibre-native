@@ -421,6 +421,12 @@ std::unique_ptr<RenderTree> RenderOrchestrator::createRenderTree(
                 updateList[index] = true;
             }
         }
+        // Mark DEM source as needed for terrain rendering
+        if (renderTerrain && renderTerrain->isEnabled() && sourceImpl->id == renderTerrain->getSourceID()) {
+            sourceNeedsRendering = true;
+            Log::Info(Event::Render, "Marking DEM source '" + sourceImpl->id + "' for terrain rendering");
+        }
+
         source->update(sourceImpl, filteredLayersForSource, sourceNeedsRendering, sourceNeedsRelayout, tileParameters);
         filteredLayersForSource.clear();
 
@@ -431,6 +437,11 @@ std::unique_ptr<RenderTree> RenderOrchestrator::createRenderTree(
             }
         }
         addChanges(changes);
+    }
+
+    // Enable 3D mode if terrain is present
+    if (renderTerrain && renderTerrain->isEnabled()) {
+        renderTreeParameters->has3D = true;
     }
 
     renderTreeParameters->loaded = updateParameters->styleLoaded && isLoaded();

@@ -160,6 +160,8 @@ public:
 
     RenderSource* getRenderSource(const std::string& id) const;
 
+    RenderTerrain* getRenderTerrain() const { return renderTerrain.get(); }
+
 private:
     bool isLoaded() const;
     bool hasTransitions(TimePoint) const;

@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Read(//Users/jesse/projects/Pheonix-Project/maplibre/**)",
-      "Bash(bazel build:*)"
+      "Bash(bazel build:*)",
+      "Bash(find:*)",
+      "Bash(bazel run:*)"
     ],
     "deny": [],
     "ask": []

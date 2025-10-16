@@ -945,6 +945,8 @@ MLN_DRAWABLES_SOURCE = [
     "src/mbgl/renderer/layers/raster_layer_tweaker.hpp",
     "src/mbgl/renderer/layers/symbol_layer_tweaker.cpp",
     "src/mbgl/renderer/layers/symbol_layer_tweaker.hpp",
+    "src/mbgl/renderer/layers/terrain_layer_tweaker.cpp",
+    "src/mbgl/renderer/layers/terrain_layer_tweaker.hpp",
     "src/mbgl/renderer/layers/collision_layer_tweaker.cpp",
     "src/mbgl/renderer/layers/collision_layer_tweaker.hpp",
     "src/mbgl/shaders/shader_program_base.cpp",
