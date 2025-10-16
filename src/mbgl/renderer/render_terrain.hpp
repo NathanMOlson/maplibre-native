@@ -10,6 +10,8 @@
 #include <map>
 #include <string>
 #include <optional>
+#include <vector>
+#include <cstdint>
 
 namespace mbgl {
 
@@ -17,9 +19,15 @@ class TransformState;
 class UpdateParameters;
 class RenderSource;
 class PaintParameters;
+class RenderTree;
+class LayerGroupBase;
+using LayerGroupBasePtr = std::shared_ptr<LayerGroupBase>;
+using UniqueChangeRequestVec = std::vector<std::unique_ptr<class ChangeRequest>>;
 
 namespace gfx {
 class Context;
+class Drawable;
+class ShaderRegistry;
 }
 
 /**
@@ -41,6 +49,22 @@ public:
      * @param parameters Update parameters including transform state and sources
      */
     void update(const UpdateParameters& parameters);
+
+    /**
+     * @brief Update terrain rendering (create/update drawables)
+     * @param shaders Shader registry for getting terrain shader
+     * @param context Graphics context for creating drawables and layer groups
+     * @param state Transform state
+     * @param updateParameters Update parameters
+     * @param renderTree Render tree
+     * @param changes Vector to collect change requests
+     */
+    void update(gfx::ShaderRegistry& shaders,
+                gfx::Context& context,
+                const TransformState& state,
+                const std::shared_ptr<UpdateParameters>& updateParameters,
+                const RenderTree& renderTree,
+                UniqueChangeRequestVec& changes);
 
     /**
      * @brief Get elevation at a specific tile coordinate
@@ -94,9 +118,16 @@ public:
         std::shared_ptr<gfx::IndexBuffer> indexBuffer;
         size_t vertexCount;
         size_t indexCount;
+        std::vector<int16_t> vertices;  // Raw vertex data (x, y pairs as short2)
+        std::vector<uint16_t> indices;  // Raw index data
     };
 
     const TerrainMesh& getMesh(gfx::Context& context);
+
+    /**
+     * @brief Get the layer group for terrain drawables
+     */
+    const LayerGroupBasePtr& getLayerGroup() const { return layerGroup; }
 
     // Immutable terrain configuration
     Immutable<style::Terrain::Impl> impl;
@@ -111,18 +142,37 @@ private:
     void generateMesh(gfx::Context& context);
 
     /**
+     * @brief Create a drawable for terrain rendering
+     * @param context Graphics context
+     * @param shaders Shader registry
+     * @return Unique pointer to created drawable
+     */
+    std::unique_ptr<gfx::Drawable> createDrawable(gfx::Context& context, gfx::ShaderRegistry& shaders);
+
+    /**
      * @brief Find the DEM source for the current terrain
      */
     RenderSource* findDEMSource(const UpdateParameters& parameters);
 
+    /**
+     * @brief Activate or deactivate the layer group
+     */
+    void activateLayerGroup(bool activate, UniqueChangeRequestVec& changes);
+
     // Terrain mesh (shared across all tiles)
     std::optional<TerrainMesh> mesh;
+
+    // Layer group for terrain drawables
+    LayerGroupBasePtr layerGroup;
 
     // Mesh resolution (vertices per side)
     static constexpr size_t MESH_SIZE = 128;
 
     // Cached DEM source
     RenderSource* demSource = nullptr;
+
+    // Layer index (terrain renders early in 3D pass, use negative index)
+    static constexpr int32_t TERRAIN_LAYER_INDEX = -1000;
 };
 
 } // namespace mbgl

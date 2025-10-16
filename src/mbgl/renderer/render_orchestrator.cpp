@@ -990,6 +990,12 @@ void RenderOrchestrator::updateLayers(gfx::ShaderRegistry& shaders,
 #endif
         renderLayer.update(shaders, context, state, updateParameters, renderTree, changes);
     }
+
+    // Update terrain if enabled
+    if (renderTerrain && renderTerrain->isEnabled()) {
+        renderTerrain->update(shaders, context, state, updateParameters, renderTree, changes);
+    }
+
     addChanges(changes);
 }
 
