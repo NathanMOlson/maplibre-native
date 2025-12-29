@@ -12,6 +12,7 @@ void main() {
     // Check if alpha is > 0 to detect valid map data
     if (mapColor.a > 0.01) {
         fragColor = mapColor;
+        return;
     }
 
     // Fallback: elevation-based color gradient for debugging
