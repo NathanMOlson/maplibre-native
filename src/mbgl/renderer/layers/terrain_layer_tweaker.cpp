@@ -26,7 +26,6 @@ void TerrainLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParamet
 
     Log::Info(Event::Render, "TerrainLayerTweaker processing " + std::to_string(layerGroup.getDrawableCount()) + " drawables");
 
-    const auto& state = parameters.state;
     auto& context = parameters.context;
 
 #if defined(DEBUG)

@@ -40,7 +40,7 @@ RenderTerrain::RenderTerrain(Immutable<style::Terrain::Impl> impl_)
 
 RenderTerrain::~RenderTerrain() = default;
 
-void RenderTerrain::update(const UpdateParameters& parameters) {
+void RenderTerrain::update(const UpdateParameters& /*parameters*/) {
     // Find the DEM source if we haven't already
     if (!demSource && !impl->sourceID.empty()) {
         // In a full implementation, we would look up the source from parameters.sources
@@ -214,7 +214,7 @@ const RenderTerrain::TerrainMesh& RenderTerrain::getMesh(gfx::Context& context) 
     return *mesh;
 }
 
-void RenderTerrain::generateMesh(gfx::Context& context) {
+void RenderTerrain::generateMesh(gfx::Context& /*context*/) {
     // Generate a regular grid mesh for terrain
     // This mesh will be reused for all tiles and displaced by DEM data in shaders
 
