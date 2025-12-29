@@ -217,8 +217,8 @@
     {
         "name": "TerrainShader",
         "header": "terrain",
-        "glsl_vert": "_empty.glsl",
-        "glsl_frag": "_empty.glsl",
+        "glsl_vert": "terrain.vertex.glsl",
+        "glsl_frag": "terrain.fragment.glsl",
         "uses_ubos": true
     },
     {
