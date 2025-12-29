@@ -1,16 +1,18 @@
 in vec2 v_uv;
 in float v_elevation;
 
+uniform sampler2D u_map;
+
 void main() {
     // Sample the map texture (render-to-texture output) for the surface color
     // Note: Y-coordinate is flipped (1.0 - y) to match OpenGL convention
-    //vec4 mapColor = texture(u_map, vec2(v_uv.x, 1.0 - v_uv.y));
+    vec4 mapColor = texture(u_map, vec2(v_uv.x, 1.0 - v_uv.y));
 
     // If map texture has valid data, use it; otherwise fall back to elevation-based coloring
     // Check if alpha is > 0 to detect valid map data
-    //if (mapColor.a > 0.01) {
-    //    fragColor = vec4(mapColor);
-    //}
+    if (mapColor.a > 0.01) {
+        fragColor = mapColor;
+    }
 
     // Fallback: elevation-based color gradient for debugging
     float normalizedElevation = clamp((v_elevation - 500.0) / 3500.0, 0.0, 1.0);
