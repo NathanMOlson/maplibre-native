@@ -209,9 +209,10 @@ private:
      * @return Unique pointer to created drawable
      */
     std::unique_ptr<gfx::Drawable> createDrawableForTile(gfx::Context& context,
-                                                          gfx::ShaderRegistry& shaders,
-                                                          const OverscaledTileID& tileID,
-                                                          std::shared_ptr<gfx::Texture2D> demTexture);
+                                                         gfx::ShaderRegistry& shaders,
+                                                         const OverscaledTileID& tileID,
+                                                         std::shared_ptr<gfx::Texture2D> demTexture,
+                                                         std::shared_ptr<gfx::Texture2D> mapTexture);
 };
 
 } // namespace mbgl

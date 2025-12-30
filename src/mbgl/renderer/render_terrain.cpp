@@ -6,6 +6,7 @@
 #include <mbgl/renderer/render_tree.hpp>
 #include <mbgl/renderer/render_static_data.hpp>
 #include <mbgl/renderer/render_orchestrator.hpp>
+#include <mbgl/renderer/render_target.hpp>
 #include <mbgl/renderer/change_request.hpp>
 #include <mbgl/renderer/layer_group.hpp>
 #include <mbgl/renderer/layers/terrain_layer_tweaker.hpp>
@@ -52,9 +53,9 @@ void RenderTerrain::update(const UpdateParameters& /*parameters*/) {
 void RenderTerrain::update(RenderOrchestrator& orchestrator,
                            gfx::ShaderRegistry& shaders,
                            gfx::Context& context,
-                           const TransformState& /*state*/,
-                           const std::shared_ptr<UpdateParameters>& /*updateParameters*/,
-                           const RenderTree& /*renderTree*/,
+                           const TransformState& state,
+                           const std::shared_ptr<UpdateParameters>& updateParameters,
+                           const RenderTree& renderTree,
                            UniqueChangeRequestVec& changes) {
     // Find the DEM source if we haven't already
     if (!demSource && !impl->sourceID.empty()) {
@@ -167,7 +168,24 @@ void RenderTerrain::update(RenderOrchestrator& orchestrator,
         }
 
         // Create terrain drawable for this tile
-        auto drawable = createDrawableForTile(context, shaders, tileID, demTexture);
+        const Size size(imagePtr->size.width, imagePtr->size.height);
+        RenderTargetPtr renderTarget = context.createRenderTarget(size, gfx::TextureChannelDataType::UnsignedByte);
+
+        const auto& items = renderTree.getLayerRenderItemMap();
+        changes.reserve(items.size() * 3);
+
+        for (const auto& item : items) {
+            auto& renderLayer = item.layer.get();
+#if MLN_RENDER_BACKEND_OPENGL
+            // Android Emulator: Goldfish is *very* broken. This will prevent a crash
+            // inside the GL translation layer at the cost of emulator performance.
+            // if (androidGoldfishMitigationEnabled) {
+            //     renderLayer.removeAllDrawables();
+            // }
+#endif
+            renderLayer.update(shaders, context, state, updateParameters, renderTree, changes);
+        }
+        auto drawable = createDrawableForTile(context, shaders, tileID, demTexture, renderTarget->getTexture());
         if (drawable) {
             lg->addDrawable(std::move(drawable));
             tilesWithDrawables[tileID] = true;
@@ -391,7 +409,8 @@ std::shared_ptr<gfx::Texture2D> RenderTerrain::createTestMapTexture(gfx::Context
 std::unique_ptr<gfx::Drawable> RenderTerrain::createDrawableForTile(gfx::Context& context,
                                                                       gfx::ShaderRegistry& shaders,
                                                                       const OverscaledTileID& tileID,
-                                                                      std::shared_ptr<gfx::Texture2D> demTexture) {
+                                                                      std::shared_ptr<gfx::Texture2D> demTexture,
+                                                                      std::shared_ptr<gfx::Texture2D> mapTexture) {
     // Ensure mesh is generated
     const auto& terrainMesh = getMesh(context);
 
@@ -448,12 +467,13 @@ std::unique_ptr<gfx::Drawable> RenderTerrain::createDrawableForTile(gfx::Context
         Log::Warning(Event::Render, "No DEM texture provided for tile " + util::toString(tileID));
     }
 
-    // Create a test map texture (simple colored texture for now)
-    // This will be replaced with actual render-to-texture later
-    auto mapTexture = createTestMapTexture(context);
+    if (!mapTexture) {
+        mapTexture = createTestMapTexture(context);
+        Log::Warning(Event::Render, "No map texture provided, using test pattern for tile " + util::toString(tileID));
+    }
     if (mapTexture) {
         builder->setTexture(mapTexture, 1); // Texture index 1 for map
-        Log::Info(Event::Render, "Test map texture bound to drawable for tile " + util::toString(tileID));
+        Log::Info(Event::Render, "Map texture bound to drawable for tile " + util::toString(tileID));
     } else {
         Log::Warning(Event::Render, "Failed to create test map texture for tile " + util::toString(tileID));
     }
