@@ -48,6 +48,8 @@ public:
     RenderTerrain(Immutable<style::Terrain::Impl>);
     ~RenderTerrain();
 
+    std::shared_ptr<gfx::Texture2D> devMapTexture;
+
     /**
      * @brief Update terrain state for the current frame
      * @param parameters Update parameters including transform state and sources

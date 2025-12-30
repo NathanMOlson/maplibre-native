@@ -7,6 +7,7 @@
 #include <mbgl/renderer/render_source.hpp>
 #include <mbgl/renderer/render_layer.hpp>
 #include <mbgl/renderer/render_static_data.hpp>
+#include <mbgl/renderer/render_target.hpp>
 #include <mbgl/renderer/render_tree.hpp>
 #include <mbgl/renderer/render_terrain.hpp>
 #include <mbgl/renderer/update_parameters.hpp>
@@ -1034,6 +1035,26 @@ bool RenderOrchestrator::removeRenderTarget(const RenderTargetPtr& renderTarget)
         return true;
     } else {
         return false;
+    }
+}
+
+void RenderOrchestrator::moveLayerGroupsToTarget(RenderTargetPtr renderTarget)
+{
+    std::vector<LayerGroupBasePtr> layerGroupsToMove;
+    for (auto rit = layerGroupsByLayerIndex.rbegin(); rit != layerGroupsByLayerIndex.rend(); ++rit) {
+        auto layerGroup = rit->second;
+        if(layerGroup->getName() == "terrain") {
+            continue;
+        }
+        layerGroupsToMove.push_back(layerGroup);
+    }
+    for(auto layerGroup : layerGroupsToMove) {
+        if(removeLayerGroup(layerGroup)) {
+            Log::Info(Event::Render, "Moved layer " + layerGroup->getName());
+        } else {
+            Log::Info(Event::Render, "Failed to move layer " + layerGroup->getName());
+        } 
+        renderTarget->addLayerGroup(layerGroup, true);
     }
 }
 

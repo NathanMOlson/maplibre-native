@@ -53,9 +53,9 @@ void RenderTerrain::update(const UpdateParameters& /*parameters*/) {
 void RenderTerrain::update(RenderOrchestrator& orchestrator,
                            gfx::ShaderRegistry& shaders,
                            gfx::Context& context,
-                           const TransformState& state,
-                           const std::shared_ptr<UpdateParameters>& updateParameters,
-                           const RenderTree& renderTree,
+                           const TransformState& /*state*/,
+                           const std::shared_ptr<UpdateParameters>& /*updateParameters*/,
+                           const RenderTree& /*renderTree*/,
                            UniqueChangeRequestVec& changes) {
     // Find the DEM source if we haven't already
     if (!demSource && !impl->sourceID.empty()) {

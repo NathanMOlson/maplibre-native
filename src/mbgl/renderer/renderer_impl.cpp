@@ -208,6 +208,15 @@ void Renderer::Impl::render(const RenderTree& renderTree, const std::shared_ptr<
 
     const auto& layerRenderItems = renderTree.getLayerRenderItemMap();
 
+    RenderTargetPtr renderToTextureTarget;
+    if (auto* terrain = orchestrator.getRenderTerrain()) {
+        const uint16_t tilesize = 512; // TODO;
+        renderToTextureTarget = context.createRenderTarget({tilesize, tilesize},
+                                                       gfx::TextureChannelDataType::UnsignedByte);
+        terrain->devMapTexture = renderToTextureTarget->getTexture();
+        Log::Info(Event::Render, "Set devMapTexture");
+    }
+
     // - UPLOAD PASS -------------------------------------------------------------------------------
     // Uploads all required buffers and images before we do any actual rendering.
     {
@@ -237,6 +246,8 @@ void Renderer::Impl::render(const RenderTree& renderTree, const std::shared_ptr<
     }
 
     orchestrator.processChanges();
+    orchestrator.addRenderTarget(renderToTextureTarget);
+    orchestrator.moveLayerGroupsToTarget(renderToTextureTarget);
 
     // Upload layer groups
     {

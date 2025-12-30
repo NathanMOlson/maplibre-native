@@ -127,6 +127,8 @@ public:
         }
     }
 
+    void moveLayerGroupsToTarget(RenderTargetPtr);
+
     void updateLayers(gfx::ShaderRegistry&,
                       gfx::Context&,
                       const TransformState&,
