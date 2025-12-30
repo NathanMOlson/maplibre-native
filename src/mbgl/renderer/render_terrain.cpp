@@ -168,24 +168,7 @@ void RenderTerrain::update(RenderOrchestrator& orchestrator,
         }
 
         // Create terrain drawable for this tile
-        const Size size(imagePtr->size.width, imagePtr->size.height);
-        RenderTargetPtr renderTarget = context.createRenderTarget(size, gfx::TextureChannelDataType::UnsignedByte);
-
-        const auto& items = renderTree.getLayerRenderItemMap();
-        changes.reserve(items.size() * 3);
-
-        for (const auto& item : items) {
-            auto& renderLayer = item.layer.get();
-#if MLN_RENDER_BACKEND_OPENGL
-            // Android Emulator: Goldfish is *very* broken. This will prevent a crash
-            // inside the GL translation layer at the cost of emulator performance.
-            // if (androidGoldfishMitigationEnabled) {
-            //     renderLayer.removeAllDrawables();
-            // }
-#endif
-            renderLayer.update(shaders, context, state, updateParameters, renderTree, changes);
-        }
-        auto drawable = createDrawableForTile(context, shaders, tileID, demTexture, renderTarget->getTexture());
+        auto drawable = createDrawableForTile(context, shaders, tileID, demTexture, devMapTexture);
         if (drawable) {
             lg->addDrawable(std::move(drawable));
             tilesWithDrawables[tileID] = true;

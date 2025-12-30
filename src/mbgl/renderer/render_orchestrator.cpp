@@ -990,21 +990,21 @@ void RenderOrchestrator::updateLayers(gfx::ShaderRegistry& shaders,
     std::vector<std::unique_ptr<ChangeRequest>> changes;
     changes.reserve(items.size() * 3);
 
+    for (const auto& item : items) {
+        auto& renderLayer = item.layer.get();
+#if MLN_RENDER_BACKEND_OPENGL
+        // Android Emulator: Goldfish is *very* broken. This will prevent a crash
+        // inside the GL translation layer at the cost of emulator performance.
+        if (androidGoldfishMitigationEnabled) {
+            renderLayer.removeAllDrawables();
+        }
+#endif
+        renderLayer.update(shaders, context, state, updateParameters, renderTree, changes);
+    }
+
     // Update terrain if enabled
     if (renderTerrain && renderTerrain->isEnabled()) {
         renderTerrain->update(*this, shaders, context, state, updateParameters, renderTree, changes);
-    } else {
-        for (const auto& item : items) {
-            auto& renderLayer = item.layer.get();
-#if MLN_RENDER_BACKEND_OPENGL
-            // Android Emulator: Goldfish is *very* broken. This will prevent a crash
-            // inside the GL translation layer at the cost of emulator performance.
-            if (androidGoldfishMitigationEnabled) {
-                renderLayer.removeAllDrawables();
-            }
-#endif
-            renderLayer.update(shaders, context, state, updateParameters, renderTree, changes);
-        }
     }
 
     addChanges(changes);
