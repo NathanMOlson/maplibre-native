@@ -33,6 +33,11 @@ mat4 LayerTweaker::getTileMatrix(const UnwrappedTileID& tileID,
                                  bool inViewportPixelUnits,
                                  const gfx::Drawable& drawable,
                                  bool aligned) {
+    if (true) { // TODO: get real matrix
+        mat4 terrainRttPosMatrix;
+        matrix::ortho(terrainRttPosMatrix, 0, util::EXTENT, util::EXTENT, 0, 0, 1);
+        return terrainRttPosMatrix;
+    }
     // from RenderTile::prepare
     mat4 tileMatrix;
     parameters.state.matrixFor(/*out*/ tileMatrix, tileID);
