@@ -973,7 +973,8 @@ void RenderOrchestrator::updateLayers(gfx::ShaderRegistry& shaders,
                                       gfx::Context& context,
                                       const TransformState& state,
                                       const std::shared_ptr<UpdateParameters>& updateParameters,
-                                      const RenderTree& renderTree) {
+                                      const RenderTree& renderTree,
+                                      const TexturePool& pool) {
     MLN_TRACE_FUNC();
 
     const bool isMapModeContinuous = updateParameters->mode == MapMode::Continuous;
@@ -1005,7 +1006,7 @@ void RenderOrchestrator::updateLayers(gfx::ShaderRegistry& shaders,
 
     // Update terrain if enabled
     if (renderTerrain && renderTerrain->isEnabled()) {
-        renderTerrain->update(*this, shaders, context, state, updateParameters, renderTree, changes);
+        renderTerrain->update(*this, shaders, context, pool, state, updateParameters, renderTree, changes);
     }
 
     addChanges(changes);
@@ -1055,6 +1056,26 @@ void RenderOrchestrator::moveLayerGroupsToTarget(RenderTargetPtr renderTarget)
             Log::Info(Event::Render, "Failed to move layer " + layerGroup->getName());
         } 
         renderTarget->addLayerGroup(layerGroup, true);
+    }
+}
+
+void RenderOrchestrator::moveLayerGroupsToTexturePool(TexturePool& pool)
+{
+    std::vector<LayerGroupBasePtr> layerGroupsToMove;
+    for (auto rit = layerGroupsByLayerIndex.rbegin(); rit != layerGroupsByLayerIndex.rend(); ++rit) {
+        auto layerGroup = rit->second;
+        if(layerGroup->getName() == "terrain") {
+            continue;
+        }
+        layerGroupsToMove.push_back(layerGroup);
+    }
+    for(auto layerGroup : layerGroupsToMove) {
+        if(removeLayerGroup(layerGroup)) {
+            Log::Info(Event::Render, "Moved layer " + layerGroup->getName());
+        } else {
+            Log::Info(Event::Render, "Failed to move layer " + layerGroup->getName());
+        } 
+        pool.getRenderTarget(UnwrappedTileID(0,0,0))->addLayerGroup(layerGroup, true); // TODO
     }
 }
 

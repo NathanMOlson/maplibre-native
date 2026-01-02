@@ -53,6 +53,7 @@ void RenderTerrain::update(const UpdateParameters& /*parameters*/) {
 void RenderTerrain::update(RenderOrchestrator& orchestrator,
                            gfx::ShaderRegistry& shaders,
                            gfx::Context& context,
+                           const TexturePool& pool,
                            const TransformState& /*state*/,
                            const std::shared_ptr<UpdateParameters>& /*updateParameters*/,
                            const RenderTree& /*renderTree*/,
@@ -168,7 +169,7 @@ void RenderTerrain::update(RenderOrchestrator& orchestrator,
         }
 
         // Create terrain drawable for this tile
-        auto drawable = createDrawableForTile(context, shaders, tileID, demTexture, devMapTexture);
+        auto drawable = createDrawableForTile(context, shaders, tileID, demTexture, pool.getRenderTarget(renderTile.id)->getTexture());
         if (drawable) {
             lg->addDrawable(std::move(drawable));
             tilesWithDrawables[tileID] = true;

@@ -13,6 +13,8 @@
 #include <mbgl/renderer/renderer_observer.hpp>
 #include <mbgl/renderer/render_static_data.hpp>
 #include <mbgl/renderer/render_tree.hpp>
+#include <mbgl/renderer/render_tile.hpp>
+#include <mbgl/renderer/texture_pool.hpp>
 #include <mbgl/renderer/update_parameters.hpp>
 #include <mbgl/shaders/program_parameters.hpp>
 #include <mbgl/util/convert.hpp>
@@ -209,12 +211,17 @@ void Renderer::Impl::render(const RenderTree& renderTree, const std::shared_ptr<
     const auto& layerRenderItems = renderTree.getLayerRenderItemMap();
 
     RenderTargetPtr renderToTextureTarget;
+
+    const uint16_t tilesize = 512; // TODO;
+    TexturePool pool(tilesize);
     if (auto* terrain = orchestrator.getRenderTerrain()) {
-        const uint16_t tilesize = 512; // TODO;
-        renderToTextureTarget = context.createRenderTarget({tilesize, tilesize},
-                                                       gfx::TextureChannelDataType::UnsignedByte);
-        terrain->devMapTexture = renderToTextureTarget->getTexture();
-        Log::Info(Event::Render, "Set devMapTexture");
+        RenderSource* demSource = orchestrator.getRenderSource(terrain->getSourceID());
+        auto renderTiles = demSource->getRawRenderTiles();
+
+        for (const auto& renderTile : *renderTiles) {
+            pool.createRenderTarget(context, renderTile.id);
+        }
+        renderToTextureTarget = pool.getRenderTarget(UnwrappedTileID(0,0,0)); // TODO
     }
 
     // - UPLOAD PASS -------------------------------------------------------------------------------
@@ -242,12 +249,12 @@ void Renderer::Impl::render(const RenderTree& renderTree, const std::shared_ptr<
     // Updates all layer groups and process changes
     if (staticData && staticData->shaders) {
         orchestrator.updateLayers(
-            *staticData->shaders, context, renderTreeParameters.transformParams.state, updateParameters, renderTree);
+            *staticData->shaders, context, renderTreeParameters.transformParams.state, updateParameters, renderTree, pool);
     }
 
     orchestrator.processChanges();
     orchestrator.addRenderTarget(renderToTextureTarget);
-    orchestrator.moveLayerGroupsToTarget(renderToTextureTarget);
+    orchestrator.moveLayerGroupsToTexturePool(pool);
 
     // Upload layer groups
     {

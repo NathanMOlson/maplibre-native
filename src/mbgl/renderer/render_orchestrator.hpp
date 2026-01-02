@@ -5,6 +5,7 @@
 #include <mbgl/renderer/renderer.hpp>
 #include <mbgl/renderer/render_source_observer.hpp>
 #include <mbgl/renderer/render_light.hpp>
+#include <mbgl/renderer/texture_pool.hpp>
 #include <mbgl/style/image.hpp>
 #include <mbgl/style/source.hpp>
 #include <mbgl/style/layer.hpp>
@@ -129,11 +130,14 @@ public:
 
     void moveLayerGroupsToTarget(RenderTargetPtr);
 
+    void moveLayerGroupsToTexturePool(TexturePool& pool);
+
     void updateLayers(gfx::ShaderRegistry&,
                       gfx::Context&,
                       const TransformState&,
                       const std::shared_ptr<UpdateParameters>&,
-                      const RenderTree&);
+                      const RenderTree&,
+                      const TexturePool& pool);
 
     void processChanges();
 

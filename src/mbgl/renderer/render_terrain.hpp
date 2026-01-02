@@ -5,6 +5,7 @@
 #include <mbgl/tile/tile_id.hpp>
 #include <mbgl/gfx/vertex_buffer.hpp>
 #include <mbgl/gfx/index_buffer.hpp>
+#include <mbgl/renderer/texture_pool.hpp>
 
 #include <memory>
 #include <map>
@@ -48,8 +49,6 @@ public:
     RenderTerrain(Immutable<style::Terrain::Impl>);
     ~RenderTerrain();
 
-    std::shared_ptr<gfx::Texture2D> devMapTexture;
-
     /**
      * @brief Update terrain state for the current frame
      * @param parameters Update parameters including transform state and sources
@@ -69,6 +68,7 @@ public:
     void update(class RenderOrchestrator& orchestrator,
                 gfx::ShaderRegistry& shaders,
                 gfx::Context& context,
+                const TexturePool& pool,
                 const TransformState& state,
                 const std::shared_ptr<UpdateParameters>& updateParameters,
                 const RenderTree& renderTree,
