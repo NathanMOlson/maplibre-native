@@ -27,7 +27,7 @@ class LayerGroupBase;
 class PaintParameters;
 class RenderTree;
 class TransformState;
-class UnwrappedTileID;
+class OverscaledTileID;
 
 /**
     Base class for layer tweakers, which manipulate layer group per frame
@@ -49,7 +49,7 @@ public:
     /// Calculate matrices for this tile.
     /// @param nearClipped If true, the near plane is moved further to enhance depth buffer precision.
     /// @param inViewportPixelUnits If false, the translation is scaled based on the current zoom.
-    static mat4 getTileMatrix(const UnwrappedTileID&,
+    static mat4 getTileMatrix(const OverscaledTileID&,
                               const PaintParameters&,
                               const std::array<float, 2>& translation,
                               style::TranslateAnchorType,

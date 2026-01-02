@@ -104,7 +104,7 @@ void SymbolLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParamete
             return;
         }
 
-        const auto tileID = drawable.getTileID()->toUnwrapped();
+        const auto tileID = drawable.getTileID().value();
         const auto& symbolData = static_cast<gfx::SymbolDrawableData&>(*drawable.getData());
         const auto isText = (symbolData.symbolType == SymbolType::Text);
 

@@ -82,7 +82,7 @@ void FillExtrusionLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintP
             return;
         }
 
-        const UnwrappedTileID tileID = drawable.getTileID()->toUnwrapped();
+        const OverscaledTileID tileID = drawable.getTileID().value();
         const auto& translation = evaluated.get<FillExtrusionTranslate>();
         const auto anchor = evaluated.get<FillExtrusionTranslateAnchor>();
         constexpr bool inViewportPixelUnits = false; // from RenderTile::translatedMatrix

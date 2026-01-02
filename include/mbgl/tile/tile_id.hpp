@@ -1,6 +1,7 @@
 #pragma once
 
 #include <mbgl/util/constants.hpp>
+#include <mbgl/util/mat4.hpp>
 
 #include <cmath>
 #include <cstdint>
@@ -10,6 +11,7 @@
 #include <algorithm>
 #include <iosfwd>
 #include <cassert>
+#include <optional>
 
 namespace mbgl {
 
@@ -59,11 +61,18 @@ public:
     uint32_t overscaleFactor() const noexcept;
     OverscaledTileID scaledTo(uint8_t z) const noexcept;
     UnwrappedTileID toUnwrapped() const noexcept;
+    float pixelsToTileUnits(float pixelValue, float zoom) const noexcept;
     OverscaledTileID unwrapTo(int16_t wrap) const noexcept;
 
     uint8_t overscaledZ;
     int16_t wrap;
     CanonicalTileID canonical;
+    /**
+     * This matrix is used during terrain's render-to-texture stage only.
+     * If the render-to-texture stage is active, this matrix will be present
+     * and should be used, otherwise this matrix will be null.
+     */
+    std::optional<mat4> terrainRttPosMatrix;
 };
 
 ::std::ostream& operator<<(::std::ostream& os, const OverscaledTileID& rhs);
@@ -255,6 +264,10 @@ inline std::array<UnwrappedTileID, 4> UnwrappedTileID::children() const noexcept
 inline OverscaledTileID UnwrappedTileID::overscaleTo(const uint8_t overscaledZ) const noexcept {
     assert(overscaledZ >= canonical.z);
     return {overscaledZ, wrap, canonical};
+}
+
+inline float OverscaledTileID::pixelsToTileUnits(const float pixelValue, const float zoom) const noexcept {
+    return toUnwrapped().pixelsToTileUnits(pixelValue, zoom);
 }
 
 inline float UnwrappedTileID::pixelsToTileUnits(const float pixelValue, const float zoom) const noexcept {

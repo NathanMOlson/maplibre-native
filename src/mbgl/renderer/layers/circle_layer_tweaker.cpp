@@ -68,7 +68,7 @@ void CircleLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParamete
         if (!drawable.getTileID() || !checkTweakDrawable(drawable)) {
             return;
         }
-        const UnwrappedTileID tileID = drawable.getTileID()->toUnwrapped();
+        const OverscaledTileID tileID = drawable.getTileID().value();
 
         auto* binders = static_cast<CircleBinders*>(drawable.getBinders());
         if (!binders) {

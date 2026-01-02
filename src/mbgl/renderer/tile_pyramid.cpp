@@ -186,6 +186,9 @@ void TilePyramid::update(const std::vector<Immutable<style::LayerProperties>>& l
         std::unique_ptr<Tile> tile = cache.pop(tileID);
         if (!tile) {
             tile = createTile(tileID, observer);
+            mat4 terrainRttPosMatrix;
+            matrix::ortho(terrainRttPosMatrix, 0, util::EXTENT, util::EXTENT, 0, 0, 1);
+            tile->id.terrainRttPosMatrix = terrainRttPosMatrix;
             if (!tile) return nullptr;
             tile->setLayers(layers);
         }

@@ -173,7 +173,7 @@ void LineLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
             return;
         }
 
-        const UnwrappedTileID tileID = drawable.getTileID()->toUnwrapped();
+        const OverscaledTileID tileID = drawable.getTileID().value();
 
         auto* binders = static_cast<LineBinders*>(drawable.getBinders());
         const auto* tile = drawable.getRenderTile();

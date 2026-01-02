@@ -114,7 +114,7 @@ public:
         }
 #endif
 
-        const UnwrappedTileID tileID = drawable.getTileID()->toUnwrapped();
+        const OverscaledTileID tileID = drawable.getTileID().value();
         const auto zoom = parameters.state.getZoom();
 
         const auto matrix = LayerTweaker::getTileMatrix(
@@ -221,10 +221,10 @@ public:
             callback(drawable, parameters, options);
         }
 
-        const UnwrappedTileID tileID = drawable.getTileID()->toUnwrapped();
+        const OverscaledTileID tileID = drawable.getTileID().value();
 
         mat4 tileMatrix;
-        parameters.state.matrixFor(/*out*/ tileMatrix, tileID);
+        parameters.state.matrixFor(/*out*/ tileMatrix, tileID.toUnwrapped());
         if (const auto& origin{drawable.getOrigin()}; origin.has_value()) {
             matrix::translate(tileMatrix, tileMatrix, origin->x, origin->y, 0);
         }
@@ -301,7 +301,7 @@ public:
         }
 #endif
 
-        const UnwrappedTileID tileID = drawable.getTileID()->toUnwrapped();
+        const OverscaledTileID tileID = drawable.getTileID().value();
         const auto matrix = LayerTweaker::getTileMatrix(
             tileID, parameters, {{0, 0}}, style::TranslateAnchorType::Viewport, false, false, drawable, false);
 
@@ -375,7 +375,7 @@ public:
             callback(drawable, parameters, options);
         }
 
-        const UnwrappedTileID tileID = drawable.getTileID()->toUnwrapped();
+        const OverscaledTileID tileID = drawable.getTileID().value();
 
         const auto matrix = LayerTweaker::getTileMatrix(
             tileID, parameters, {{0, 0}}, style::TranslateAnchorType::Viewport, false, false, drawable, false);

@@ -64,7 +64,7 @@ void HillshadeLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParam
             return;
         }
 
-        const UnwrappedTileID tileID = drawable.getTileID()->toUnwrapped();
+        const OverscaledTileID tileID = drawable.getTileID().value();
 
         const auto matrix = getTileMatrix(
             tileID, parameters, {0.f, 0.f}, TranslateAnchorType::Viewport, false, false, drawable, true);
@@ -82,7 +82,7 @@ void HillshadeLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParam
 #else
         const HillshadeTilePropsUBO tilePropsUBO = {
 #endif
-            .latrange = getLatRange(tileID),
+            .latrange = getLatRange(tileID.toUnwrapped()),
             .light = getLight(parameters, evaluated)
         };
 

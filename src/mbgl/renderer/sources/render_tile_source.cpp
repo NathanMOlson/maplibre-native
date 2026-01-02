@@ -109,7 +109,7 @@ public:
                 return;
             }
 
-            const UnwrappedTileID tileID = drawable.getTileID()->toUnwrapped();
+            const OverscaledTileID tileID = drawable.getTileID();
             const auto zoom = parameters.state.getZoom();
             mat4 tileMatrix;
             parameters.state.matrixFor(/*out*/ tileMatrix, tileID);

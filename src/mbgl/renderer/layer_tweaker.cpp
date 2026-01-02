@@ -25,7 +25,7 @@ bool LayerTweaker::checkTweakDrawable(const gfx::Drawable& drawable) const {
     return !tweaker || tweaker.get() == this;
 }
 
-mat4 LayerTweaker::getTileMatrix(const UnwrappedTileID& tileID,
+mat4 LayerTweaker::getTileMatrix(const OverscaledTileID& tileID,
                                  const PaintParameters& parameters,
                                  const std::array<float, 2>& translation,
                                  style::TranslateAnchorType anchor,
@@ -33,20 +33,19 @@ mat4 LayerTweaker::getTileMatrix(const UnwrappedTileID& tileID,
                                  bool inViewportPixelUnits,
                                  const gfx::Drawable& drawable,
                                  bool aligned) {
-    if (true) { // TODO: get real matrix
-        mat4 terrainRttPosMatrix;
-        matrix::ortho(terrainRttPosMatrix, 0, util::EXTENT, util::EXTENT, 0, 0, 1);
-        return terrainRttPosMatrix;
+    if (tileID.terrainRttPosMatrix) {
+        return tileID.terrainRttPosMatrix.value();
     }
     // from RenderTile::prepare
     mat4 tileMatrix;
-    parameters.state.matrixFor(/*out*/ tileMatrix, tileID);
+    UnwrappedTileID unwrappedTileID = tileID.toUnwrapped();
+    parameters.state.matrixFor(/*out*/ tileMatrix, unwrappedTileID);
     if (const auto& origin{drawable.getOrigin()}; origin.has_value()) {
         matrix::translate(tileMatrix, tileMatrix, origin->x, origin->y, 0);
     }
     multiplyWithProjectionMatrix(/*in-out*/ tileMatrix, parameters, drawable, nearClipped, aligned);
     return RenderTile::translateVtxMatrix(
-        tileID, tileMatrix, translation, anchor, parameters.state, inViewportPixelUnits);
+        unwrappedTileID, tileMatrix, translation, anchor, parameters.state, inViewportPixelUnits);
 }
 
 void LayerTweaker::updateProperties(Immutable<style::LayerProperties> newProps) {

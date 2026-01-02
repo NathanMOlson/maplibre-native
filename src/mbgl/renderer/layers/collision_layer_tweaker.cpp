@@ -40,7 +40,7 @@ void CollisionLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParam
             return;
         }
 
-        const auto tileID = drawable.getTileID()->toUnwrapped();
+        const auto tileID = drawable.getTileID().value();
         const auto& data = static_cast<gfx::CollisionDrawableData&>(*drawable.getData());
 
         // matrix
