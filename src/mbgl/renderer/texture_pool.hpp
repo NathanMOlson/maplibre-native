@@ -12,10 +12,28 @@ public:
     std::shared_ptr<RenderTarget> getRenderTarget(const UnwrappedTileID& id) const;
     void createRenderTarget(gfx::Context& context, const UnwrappedTileID& id);
 
+    template <typename Func /* void(RenderTarget&) */>
+    void visitRenderTargets(Func f) {
+        for (auto& pair : renderTargets) {
+            if (pair.second) {
+                f(pair.second);
+            }
+        }
+    }
+
+    template <typename Func /* void(RenderTarget&) */>
+    void visitRenderTargets(Func f) const {
+        for (const auto& pair : renderTargets) {
+            if (pair.second) {
+                f(pair.second);
+            }
+        }
+    }
+
 private:
     uint32_t tileSize;
 
-    std::shared_ptr<RenderTarget> renderTarget;
+    std::map<UnwrappedTileID, std::shared_ptr<RenderTarget>> renderTargets;
 };
 
 } // namespace mbgl

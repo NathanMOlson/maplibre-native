@@ -221,7 +221,6 @@ void Renderer::Impl::render(const RenderTree& renderTree, const std::shared_ptr<
         for (const auto& renderTile : *renderTiles) {
             pool.createRenderTarget(context, renderTile.id);
         }
-        renderToTextureTarget = pool.getRenderTarget(UnwrappedTileID(0,0,0)); // TODO
     }
 
     // - UPLOAD PASS -------------------------------------------------------------------------------
@@ -248,12 +247,16 @@ void Renderer::Impl::render(const RenderTree& renderTree, const std::shared_ptr<
     // - LAYER GROUP UPDATE ------------------------------------------------------------------------
     // Updates all layer groups and process changes
     if (staticData && staticData->shaders) {
-        orchestrator.updateLayers(
-            *staticData->shaders, context, renderTreeParameters.transformParams.state, updateParameters, renderTree, pool);
+        orchestrator.updateLayers(*staticData->shaders,
+                                  context,
+                                  renderTreeParameters.transformParams.state,
+                                  updateParameters,
+                                  renderTree,
+                                  pool);
     }
 
     orchestrator.processChanges();
-    orchestrator.addRenderTarget(renderToTextureTarget);
+    orchestrator.addRenderTargets(pool);
     orchestrator.moveLayerGroupsToTexturePool(pool);
 
     // Upload layer groups

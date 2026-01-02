@@ -1039,43 +1039,50 @@ bool RenderOrchestrator::removeRenderTarget(const RenderTargetPtr& renderTarget)
     }
 }
 
-void RenderOrchestrator::moveLayerGroupsToTarget(RenderTargetPtr renderTarget)
-{
+void RenderOrchestrator::addRenderTargets(const TexturePool& pool) {
+    pool.visitRenderTargets([&](const RenderTargetPtr& renderTarget) {
+        auto it = std::find(renderTargets.begin(), renderTargets.end(), renderTarget);
+        if (it == renderTargets.end()) {
+            renderTargets.emplace_back(renderTarget);
+        }
+    });
+}
+
+void RenderOrchestrator::moveLayerGroupsToTarget(RenderTargetPtr renderTarget) {
     std::vector<LayerGroupBasePtr> layerGroupsToMove;
     for (auto rit = layerGroupsByLayerIndex.rbegin(); rit != layerGroupsByLayerIndex.rend(); ++rit) {
         auto layerGroup = rit->second;
-        if(layerGroup->getName() == "terrain") {
+        if (layerGroup->getName() == "terrain") {
             continue;
         }
         layerGroupsToMove.push_back(layerGroup);
     }
-    for(auto layerGroup : layerGroupsToMove) {
-        if(removeLayerGroup(layerGroup)) {
+    for (auto layerGroup : layerGroupsToMove) {
+        if (removeLayerGroup(layerGroup)) {
             Log::Info(Event::Render, "Moved layer " + layerGroup->getName());
         } else {
             Log::Info(Event::Render, "Failed to move layer " + layerGroup->getName());
-        } 
+        }
         renderTarget->addLayerGroup(layerGroup, true);
     }
 }
 
-void RenderOrchestrator::moveLayerGroupsToTexturePool(TexturePool& pool)
-{
+void RenderOrchestrator::moveLayerGroupsToTexturePool(TexturePool& pool) {
     std::vector<LayerGroupBasePtr> layerGroupsToMove;
     for (auto rit = layerGroupsByLayerIndex.rbegin(); rit != layerGroupsByLayerIndex.rend(); ++rit) {
         auto layerGroup = rit->second;
-        if(layerGroup->getName() == "terrain") {
+        if (layerGroup->getName() == "terrain") {
             continue;
         }
         layerGroupsToMove.push_back(layerGroup);
     }
-    for(auto layerGroup : layerGroupsToMove) {
-        if(removeLayerGroup(layerGroup)) {
+    for (auto layerGroup : layerGroupsToMove) {
+        if (removeLayerGroup(layerGroup)) {
             Log::Info(Event::Render, "Moved layer " + layerGroup->getName());
         } else {
             Log::Info(Event::Render, "Failed to move layer " + layerGroup->getName());
-        } 
-        pool.getRenderTarget(UnwrappedTileID(0,0,0))->addLayerGroup(layerGroup, true); // TODO
+        }
+        pool.visitRenderTargets([&](RenderTargetPtr renderTarget) { renderTarget->addLayerGroup(layerGroup, true); });
     }
 }
 

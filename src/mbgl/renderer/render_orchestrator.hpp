@@ -143,6 +143,7 @@ public:
 
     bool addRenderTarget(RenderTargetPtr);
     bool removeRenderTarget(const RenderTargetPtr&);
+    void addRenderTargets(const TexturePool& pool);
 
     template <typename Func /* void(RenderTarget&) */>
     void visitRenderTargets(Func f) {
