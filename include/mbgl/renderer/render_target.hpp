@@ -2,6 +2,7 @@
 
 #include <mbgl/gfx/types.hpp>
 #include <mbgl/util/size.hpp>
+#include <mbgl/tile/tile_id.hpp>
 
 #include <functional>
 #include <map>
@@ -28,7 +29,7 @@ using LayerGroupBasePtr = std::shared_ptr<LayerGroupBase>;
 /// Render target class
 class RenderTarget {
 public:
-    RenderTarget(gfx::Context& context, const Size size, const gfx::TextureChannelDataType type);
+    RenderTarget(gfx::Context& context, const Size size, const gfx::TextureChannelDataType type, std::optional<UnwrappedTileID> id);
     ~RenderTarget();
 
     /// Get the render target texture
@@ -81,6 +82,7 @@ public:
 protected:
     gfx::Context& context;
     std::unique_ptr<gfx::OffscreenTexture> offscreenTexture;
+    std::optional<UnwrappedTileID> tileID;
     using LayerGroupMap = std::map<int32_t, LayerGroupBasePtr>;
     LayerGroupMap layerGroupsByLayerIndex;
 };

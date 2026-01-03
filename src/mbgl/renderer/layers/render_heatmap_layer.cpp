@@ -160,6 +160,7 @@ using namespace shaders;
 
 void RenderHeatmapLayer::update(gfx::ShaderRegistry& shaders,
                                 gfx::Context& context,
+                                TexturePool&,
                                 const TransformState& state,
                                 const std::shared_ptr<UpdateParameters>&,
                                 [[maybe_unused]] const RenderTree& renderTree,
@@ -174,7 +175,7 @@ void RenderHeatmapLayer::update(gfx::ShaderRegistry& shaders,
 
     // Set up a render target
     if (!renderTarget) {
-        renderTarget = context.createRenderTarget(size, gfx::TextureChannelDataType::HalfFloat);
+        renderTarget = context.createRenderTarget(size, gfx::TextureChannelDataType::HalfFloat, std::nullopt);
         if (!renderTarget) {
             return;
         }

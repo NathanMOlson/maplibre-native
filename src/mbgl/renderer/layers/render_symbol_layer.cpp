@@ -436,6 +436,7 @@ std::size_t RenderSymbolLayer::removeAllDrawables() {
 
 void RenderSymbolLayer::update(gfx::ShaderRegistry& shaders,
                                gfx::Context& context,
+                               TexturePool&,
                                const TransformState& state,
                                const std::shared_ptr<UpdateParameters>&,
                                const RenderTree&,

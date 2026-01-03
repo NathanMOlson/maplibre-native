@@ -163,6 +163,7 @@ using namespace shaders;
 
 void RenderCircleLayer::update(gfx::ShaderRegistry& shaders,
                                gfx::Context& context,
+                               TexturePool&,
                                const TransformState&,
                                const std::shared_ptr<UpdateParameters>&,
                                const RenderTree&,

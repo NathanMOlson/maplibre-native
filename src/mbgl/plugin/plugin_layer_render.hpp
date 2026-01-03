@@ -19,6 +19,7 @@ public:
     /// Generate any changes needed by the layer
     void update(gfx::ShaderRegistry&,
                 gfx::Context&,
+                TexturePool&,
                 const TransformState&,
                 const std::shared_ptr<UpdateParameters>&,
                 const RenderTree&,
@@ -27,7 +28,7 @@ public:
     void prepare(const LayerPrepareParameters&) override;
 
     void upload(gfx::UploadPass&) override;
-    void render(PaintParameters&) override;
+    void render(PaintParameters&, std::optional<UnwrappedTileID>) override;
 
     void setRenderFunction(style::PluginLayer::OnRenderLayer renderFunction) { _renderFunction = renderFunction; }
     void setUpdateFunction(style::PluginLayer::OnUpdateLayer updateFunction) { _updateFunction = updateFunction; }

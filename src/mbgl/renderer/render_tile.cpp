@@ -145,4 +145,8 @@ void RenderTile::setFeatureState(const LayerFeatureStates& states) {
     tile.setFeatureState(states);
 }
 
+void RenderTile::setTerrainRttPosMatrix(const mat4& m) {
+    tile.id.terrainRttPosMatrix = m;
+}
+
 } // namespace mbgl

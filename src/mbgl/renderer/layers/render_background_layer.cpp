@@ -112,6 +112,7 @@ static constexpr std::string_view BackgroundPatternShaderName = "BackgroundPatte
 
 void RenderBackgroundLayer::update(gfx::ShaderRegistry& shaders,
                                    gfx::Context& context,
+                                   TexturePool&,
                                    const TransformState& state,
                                    const std::shared_ptr<UpdateParameters>& updateParameters,
                                    [[maybe_unused]] const RenderTree& renderTree,

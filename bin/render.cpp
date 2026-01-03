@@ -115,6 +115,7 @@ int main(int argc, char* argv[]) {
     }
 
     map.getStyle().loadURL(style);
+    map.setBounds(BoundOptions().withMaxPitch(85));
     std::vector<double> bounds = args::get(boundsValue);
     if (bounds.size() == 4) {
         LatLngBounds boundingBox = LatLngBounds::hull(LatLng(bounds[0], bounds[1]), LatLng(bounds[2], bounds[3]));

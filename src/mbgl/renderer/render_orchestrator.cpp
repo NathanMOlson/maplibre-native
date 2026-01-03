@@ -47,7 +47,7 @@ void LayerRenderItem::upload(gfx::UploadPass& pass) const {
     layer.get().upload(pass);
 }
 void LayerRenderItem::render(PaintParameters& parameters) const {
-    layer.get().render(parameters);
+    layer.get().render(parameters, std::nullopt);
 }
 const std::string& LayerRenderItem::getName() const {
     return layer.get().getID();
@@ -1001,7 +1001,7 @@ void RenderOrchestrator::updateLayers(gfx::ShaderRegistry& shaders,
             renderLayer.removeAllDrawables();
         }
 #endif
-        renderLayer.update(shaders, context, state, updateParameters, renderTree, changes);
+        renderLayer.update(shaders, context, pool, state, updateParameters, renderTree, changes);
     }
 
     // Update terrain if enabled

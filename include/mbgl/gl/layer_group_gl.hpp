@@ -18,7 +18,7 @@ public:
     ~TileLayerGroupGL() override {}
 
     void upload(gfx::UploadPass&) override;
-    void render(RenderOrchestrator&, PaintParameters&) override;
+    void render(RenderOrchestrator&, PaintParameters&, std::optional<UnwrappedTileID>) override;
 
     const gfx::UniformBufferArray& getUniformBuffers() const override { return uniformBuffers; };
 
@@ -37,7 +37,7 @@ public:
     ~LayerGroupGL() override {}
 
     void upload(gfx::UploadPass&) override;
-    void render(RenderOrchestrator&, PaintParameters&) override;
+    void render(RenderOrchestrator&, PaintParameters&, std::optional<UnwrappedTileID>) override;
 
     const gfx::UniformBufferArray& getUniformBuffers() const override { return uniformBuffers; };
 

@@ -65,6 +65,7 @@ void RenderCustomLayer::prepare(const LayerPrepareParameters&) {}
 
 void RenderCustomLayer::update([[maybe_unused]] gfx::ShaderRegistry& shaders,
                                gfx::Context& context,
+                               TexturePool&,
                                [[maybe_unused]] const TransformState& state,
                                const std::shared_ptr<UpdateParameters>&,
                                [[maybe_unused]] const RenderTree& renderTree,

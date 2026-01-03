@@ -84,6 +84,8 @@ public:
 
     void setFeatureState(const LayerFeatureStates&);
 
+    void setTerrainRttPosMatrix(const mat4& m);
+
 private:
     Tile& tile;
     // The following members are reset at placement stage.

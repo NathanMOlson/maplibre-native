@@ -1016,7 +1016,7 @@ void RenderLocationIndicatorLayer::populateDynamicRenderFeatureIndex(DynamicFeat
 }
 
 #ifndef MLN_DRAWABLE_LOCATION_INDICATOR
-void RenderLocationIndicatorLayer::render(PaintParameters& paintParameters) {
+void RenderLocationIndicatorLayer::render(PaintParameters& paintParameters, std::optional<UnwrappedTileID>) {
     auto& glContext = static_cast<gl::Context&>(paintParameters.context);
 
     // Reset GL state to a known state so the CustomLayer always has a clean slate.

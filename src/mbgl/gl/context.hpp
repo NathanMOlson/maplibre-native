@@ -126,7 +126,7 @@ public:
 
     gfx::Texture2DPtr createTexture2D() override;
 
-    RenderTargetPtr createRenderTarget(const Size size, const gfx::TextureChannelDataType type) override;
+    RenderTargetPtr createRenderTarget(const Size size, const gfx::TextureChannelDataType type, std::optional<UnwrappedTileID> id) override;
 
     Framebuffer createFramebuffer(const gfx::Texture2D& color);
 

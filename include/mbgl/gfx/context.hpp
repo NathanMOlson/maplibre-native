@@ -8,6 +8,7 @@
 #include <mbgl/gfx/renderbuffer.hpp>
 #include <mbgl/gfx/rendering_stats.hpp>
 #include <mbgl/gfx/types.hpp>
+#include <mbgl/tile/tile_id.hpp>
 
 #include <mbgl/gfx/uniform_buffer.hpp>
 
@@ -133,7 +134,7 @@ public:
     virtual Texture2DPtr createTexture2D() = 0;
 
     /// Create a render target
-    virtual RenderTargetPtr createRenderTarget(const Size size, const TextureChannelDataType type) = 0;
+    virtual RenderTargetPtr createRenderTarget(const Size size, const TextureChannelDataType type, std::optional<UnwrappedTileID> id) = 0;
 
     /// Resets the context state to defaults
     virtual void resetState(gfx::DepthMode depthMode, gfx::ColorMode colorMode) = 0;

@@ -55,7 +55,7 @@ void RenderPluginLayerTweaker::execute([[maybe_unused]] mbgl::gfx::Drawable& dra
     style::CustomLayerRenderParameters parameters(paintParameters);
 #endif
 
-    _plugInRenderer->render(paintParameters);
+    _plugInRenderer->render(paintParameters, std::nullopt);
 
     // Reset the view back to our original one, just in case the CustomLayer
     // changed the viewport or Framebuffer.
@@ -78,6 +78,7 @@ void RenderPluginLayer::markLayerRenderable([[maybe_unused]] bool willRender,
 /// Generate any changes needed by the layer
 void RenderPluginLayer::update([[maybe_unused]] gfx::ShaderRegistry& shaderRegistery,
                                [[maybe_unused]] gfx::Context& context,
+                               TexturePool&,
                                [[maybe_unused]] const TransformState& transformState,
                                [[maybe_unused]] const std::shared_ptr<UpdateParameters>& updateParameters,
                                [[maybe_unused]] const RenderTree& renderTree,
@@ -118,7 +119,7 @@ void RenderPluginLayer::update([[maybe_unused]] gfx::ShaderRegistry& shaderRegis
 
 void RenderPluginLayer::upload([[maybe_unused]] gfx::UploadPass& uploadPass) {}
 
-void RenderPluginLayer::render(PaintParameters& paintParameters) {
+void RenderPluginLayer::render(PaintParameters& paintParameters, std::optional<UnwrappedTileID>) {
     if (_renderFunction) {
         _renderFunction(paintParameters);
     }

@@ -91,7 +91,7 @@ public:
     /// Called during the upload pass
     virtual void upload(gfx::UploadPass&) {}
     /// Called during each render pass
-    virtual void render(RenderOrchestrator&, PaintParameters&) {}
+    virtual void render(RenderOrchestrator&, PaintParameters&, std::optional<UnwrappedTileID>) {}
     /// Called at the end of each frame
     virtual void postRender(RenderOrchestrator&, PaintParameters&) {}
 

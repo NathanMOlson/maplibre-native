@@ -43,7 +43,7 @@ private:
     void prepare(const LayerPrepareParameters &) override;
 
 #ifndef MLN_DRAWABLE_LOCATION_INDICATOR
-    void render(PaintParameters &) override;
+    void render(PaintParameters &, std::optional<UnwrappedTileID>) override;
 #endif
 
     void populateDynamicRenderFeatureIndex(DynamicFeatureIndex &) const override;

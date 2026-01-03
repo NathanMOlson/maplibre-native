@@ -47,7 +47,7 @@ void TileLayerGroupGL::upload(gfx::UploadPass& uploadPass) {
     });
 }
 
-void TileLayerGroupGL::render(RenderOrchestrator&, PaintParameters& parameters) {
+void TileLayerGroupGL::render(RenderOrchestrator&, PaintParameters& parameters, std::optional<UnwrappedTileID>) {
     if (!enabled) {
         return;
     }
@@ -162,7 +162,7 @@ void LayerGroupGL::upload(gfx::UploadPass& uploadPass) {
     });
 }
 
-void LayerGroupGL::render(RenderOrchestrator&, PaintParameters& parameters) {
+void LayerGroupGL::render(RenderOrchestrator&, PaintParameters& parameters, std::optional<UnwrappedTileID>) {
     if (!enabled) {
         return;
     }

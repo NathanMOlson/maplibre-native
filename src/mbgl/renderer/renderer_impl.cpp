@@ -210,8 +210,6 @@ void Renderer::Impl::render(const RenderTree& renderTree, const std::shared_ptr<
 
     const auto& layerRenderItems = renderTree.getLayerRenderItemMap();
 
-    RenderTargetPtr renderToTextureTarget;
-
     const uint16_t tilesize = 512; // TODO;
     TexturePool pool(tilesize);
     if (auto* terrain = orchestrator.getRenderTerrain()) {
@@ -347,7 +345,7 @@ void Renderer::Impl::render(const RenderTree& renderTree, const std::shared_ptr<
         // draw layer groups, 3D pass
         parameters.currentLayer = static_cast<uint32_t>(orchestrator.numLayerGroups()) - 1;
         orchestrator.visitLayerGroups([&](LayerGroupBase& layerGroup) {
-            layerGroup.render(orchestrator, parameters);
+            layerGroup.render(orchestrator, parameters, std::nullopt);
             if (parameters.currentLayer > 0) {
                 parameters.currentLayer--;
             }
@@ -392,7 +390,7 @@ void Renderer::Impl::render(const RenderTree& renderTree, const std::shared_ptr<
         // draw layer groups, opaque pass
         parameters.currentLayer = 0;
         orchestrator.visitLayerGroupsReversed([&](LayerGroupBase& layerGroup) {
-            layerGroup.render(orchestrator, parameters);
+            layerGroup.render(orchestrator, parameters, std::nullopt);
             parameters.currentLayer++;
         });
     };
@@ -406,7 +404,7 @@ void Renderer::Impl::render(const RenderTree& renderTree, const std::shared_ptr<
         // draw layer groups, translucent pass
         parameters.currentLayer = static_cast<uint32_t>(orchestrator.numLayerGroups()) - 1;
         orchestrator.visitLayerGroups([&](LayerGroupBase& layerGroup) {
-            layerGroup.render(orchestrator, parameters);
+            layerGroup.render(orchestrator, parameters, std::nullopt);
             if (parameters.currentLayer > 0) {
                 parameters.currentLayer--;
             }
@@ -432,7 +430,7 @@ void Renderer::Impl::render(const RenderTree& renderTree, const std::shared_ptr<
             const auto debugGroup(parameters.renderPass->createDebugGroup("debug"));
             parameters.currentLayer = 0;
             orchestrator.visitDebugLayerGroups([&](LayerGroupBase& layerGroup) {
-                layerGroup.render(orchestrator, parameters);
+                layerGroup.render(orchestrator, parameters, std::nullopt);
                 parameters.currentLayer++;
             });
         }

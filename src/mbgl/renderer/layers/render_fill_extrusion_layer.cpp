@@ -103,6 +103,7 @@ bool RenderFillExtrusionLayer::queryIntersectsFeature(const GeometryCoordinates&
 
 void RenderFillExtrusionLayer::update(gfx::ShaderRegistry& shaders,
                                       gfx::Context& context,
+                                      TexturePool&,
                                       const TransformState&,
                                       const std::shared_ptr<UpdateParameters>&,
                                       const RenderTree&,

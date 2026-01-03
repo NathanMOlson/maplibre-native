@@ -216,7 +216,7 @@ const args = (() => {
 
 
 // Generate shader source headers
-const root = path.dirname(import.meta.dirname);
+const root = "/home/nathan/maplibre-native";
 const outLocation = args.out ? args.out : root;
 const shaderRoot = path.join(root, "shaders");
 const outputRoot = path.join(outLocation, "include/mbgl/shaders");

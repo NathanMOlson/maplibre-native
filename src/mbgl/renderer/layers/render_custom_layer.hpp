@@ -13,6 +13,7 @@ public:
     /// Generate any changes needed by the layer
     void update(gfx::ShaderRegistry&,
                 gfx::Context&,
+                TexturePool&,
                 const TransformState&,
                 const std::shared_ptr<UpdateParameters>&,
                 const RenderTree&,

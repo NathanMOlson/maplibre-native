@@ -47,6 +47,7 @@ void main() {
 
     // Create 3D position with elevation as Z coordinate
     gl_Position = u_matrix * vec4(pos.x, pos.y, v_elevation, 1.0);
+    //gl_Position = vec4((v_uv.x-0.5), (v_uv.y-0.5), 0.0, 1.0);
 }
 )";
     static constexpr const char* fragment = R"(in vec2 v_uv;
@@ -62,7 +63,8 @@ void main() {
     // If map texture has valid data, use it; otherwise fall back to elevation-based coloring
     // Check if alpha is > 0 to detect valid map data
     if (mapColor.a > 0.01) {
-        fragColor = mapColor;
+        fragColor = vec4(1.0 - mapColor.x, 1.0 - mapColor.y, 1.0 - mapColor.z, 1.0);
+        fragColor = vec4(vec3(mapColor), 1.0);
         return;
     }
 
@@ -84,7 +86,7 @@ void main() {
     float gridLine = step(0.98, fract(v_uv.x * 4.0)) + step(0.98, fract(v_uv.y * 4.0));
     color = mix(color, vec3(1.0, 1.0, 1.0), gridLine * 0.5);
 
-    fragColor =  vec4(vec3(color), 1.0);
+    fragColor =  vec4(1.0 - color.x, 1.0 - color.y, 1.0 - color.z, 1.0);
     
 #if defined(OVERDRAW_INSPECTOR)
     fragColor = vec4(1.0);

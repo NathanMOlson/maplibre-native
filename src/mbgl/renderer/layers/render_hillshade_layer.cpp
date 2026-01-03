@@ -147,6 +147,7 @@ static const std::string HillshadeShaderGroupName = "HillshadeShader";
 
 void RenderHillshadeLayer::update(gfx::ShaderRegistry& shaders,
                                   gfx::Context& context,
+                                  TexturePool&,
                                   [[maybe_unused]] const TransformState& state,
                                   const std::shared_ptr<UpdateParameters>&,
                                   [[maybe_unused]] const RenderTree& renderTree,
@@ -245,7 +246,8 @@ void RenderHillshadeLayer::update(gfx::ShaderRegistry& shaders,
             // Set up tile render target
             const uint16_t tilesize = bucket.getDEMData().dim;
             auto renderTarget = context.createRenderTarget({tilesize, tilesize},
-                                                           gfx::TextureChannelDataType::UnsignedByte);
+                                                           gfx::TextureChannelDataType::UnsignedByte,
+                                                           tileID.toUnwrapped());
             if (!renderTarget) {
                 continue;
             }

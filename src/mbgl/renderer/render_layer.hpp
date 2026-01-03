@@ -2,6 +2,7 @@
 #include <mbgl/layout/layout.hpp>
 #include <mbgl/renderer/render_pass.hpp>
 #include <mbgl/renderer/render_source.hpp>
+#include <mbgl/renderer/texture_pool.hpp>
 #include <mbgl/style/layer_properties.hpp>
 #include <mbgl/tile/geometry_tile_data.hpp>
 #include <mbgl/util/mat4.hpp>
@@ -126,7 +127,7 @@ public:
     bool supportsZoom(float zoom) const;
 
     virtual void upload(gfx::UploadPass&) {}
-    virtual void render(PaintParameters&) {}
+    virtual void render(PaintParameters&, std::optional<UnwrappedTileID>) {}
 
     // Check whether the given geometry intersects with the feature
     virtual bool queryIntersectsFeature(const GeometryCoordinates&,
@@ -158,6 +159,7 @@ public:
     /// Generate any changes needed by the layer
     virtual void update(gfx::ShaderRegistry&,
                         gfx::Context&,
+                        TexturePool&,
                         const TransformState&,
                         const std::shared_ptr<UpdateParameters>&,
                         const RenderTree&,

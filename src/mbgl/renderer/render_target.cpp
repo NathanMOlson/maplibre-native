@@ -10,8 +10,8 @@
 
 namespace mbgl {
 
-RenderTarget::RenderTarget(gfx::Context& context_, const Size size, const gfx::TextureChannelDataType type)
-    : context(context_) {
+RenderTarget::RenderTarget(gfx::Context& context_, const Size size, const gfx::TextureChannelDataType type, std::optional<UnwrappedTileID> id)
+    : context(context_), tileID(id) {
     offscreenTexture = context.createOffscreenTexture(size, type);
 }
 
@@ -85,7 +85,7 @@ void RenderTarget::render(RenderOrchestrator& orchestrator, const RenderTree& re
 
     parameters.currentLayer = 0;
     visitLayerGroupsReversed([&](LayerGroupBase& layerGroup) {
-        layerGroup.render(orchestrator, parameters);
+        layerGroup.render(orchestrator, parameters, tileID);
         parameters.currentLayer++;
     });
 
@@ -96,7 +96,7 @@ void RenderTarget::render(RenderOrchestrator& orchestrator, const RenderTree& re
 
     parameters.currentLayer = static_cast<uint32_t>(numLayerGroups()) - 1;
     visitLayerGroups([&](LayerGroupBase& layerGroup) {
-        layerGroup.render(orchestrator, parameters);
+        layerGroup.render(orchestrator, parameters, tileID);
         if (parameters.currentLayer > 0) {
             parameters.currentLayer--;
         }

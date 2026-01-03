@@ -224,6 +224,7 @@ inline void setSegments(std::unique_ptr<gfx::DrawableBuilder>& builder, const Li
 
 void RenderLineLayer::update(gfx::ShaderRegistry& shaders,
                              gfx::Context& context,
+                             TexturePool&,
                              const TransformState&,
                              [[maybe_unused]] const std::shared_ptr<UpdateParameters>& parameters,
                              const RenderTree&,
