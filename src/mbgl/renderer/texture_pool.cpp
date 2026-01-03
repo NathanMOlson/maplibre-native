@@ -14,4 +14,16 @@ void TexturePool::createRenderTarget(gfx::Context& context, const UnwrappedTileI
 std::shared_ptr<RenderTarget> TexturePool::getRenderTarget(const UnwrappedTileID& id) const {
     return renderTargets.contains(id) ? renderTargets.at(id) : nullptr;
 }
+
+std::shared_ptr<RenderTarget> TexturePool::getRenderTargetAncestorOrDescendant(const UnwrappedTileID& id) const {
+    if (renderTargets.contains(id)) {
+        return renderTargets.at(id);
+    }
+    for (const auto& [tileID, renderTarget] : renderTargets) {
+        if (tileID.isChildOf(id) || id.isChildOf(tileID)) {
+            return renderTarget;
+        }
+    }
+    return nullptr;
+}
 } // namespace mbgl

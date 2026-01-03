@@ -10,9 +10,10 @@ public:
     ~TexturePool();
 
     std::shared_ptr<RenderTarget> getRenderTarget(const UnwrappedTileID& id) const;
+    std::shared_ptr<RenderTarget> getRenderTargetAncestorOrDescendant(const UnwrappedTileID& id) const;
     void createRenderTarget(gfx::Context& context, const UnwrappedTileID& id);
 
-    template <typename Func /* void(RenderTarget&) */>
+    template <typename Func /* void(std::shared_ptr<RenderTarget>&) */>
     void visitRenderTargets(Func f) {
         for (auto& pair : renderTargets) {
             if (pair.second) {
@@ -21,7 +22,7 @@ public:
         }
     }
 
-    template <typename Func /* void(RenderTarget&) */>
+    template <typename Func /* void(std::shared_ptr<RenderTarget>&) */>
     void visitRenderTargets(Func f) const {
         for (const auto& pair : renderTargets) {
             if (pair.second) {
