@@ -29,7 +29,7 @@ mat4 getTerrainRttPosMatrix(const UnwrappedTileID& tileID, const UnwrappedTileID
     mat4 terrainRttPosMatrix;
     if (tileID == terrainTileID) {
         matrix::ortho(terrainRttPosMatrix, 0, util::EXTENT, util::EXTENT, 0, 0, 1);
-    } else if (tileID.canonical.z < terrainTileID.canonical.z) {
+    } else if (terrainTileID.canonical.isChildOf(tileID.canonical)) {
         const int dz = terrainTileID.canonical.z - tileID.canonical.z;
         const int dx = terrainTileID.canonical.x - (terrainTileID.canonical.x >> dz << dz);
         const int dy = terrainTileID.canonical.y - (terrainTileID.canonical.y >> dz << dz);
@@ -47,6 +47,8 @@ mat4 getTerrainRttPosMatrix(const UnwrappedTileID& tileID, const UnwrappedTileID
         matrix::translate(terrainRttPosMatrix, terrainRttPosMatrix, dx * size, dy * size, 0);
         matrix::scale(terrainRttPosMatrix, terrainRttPosMatrix, 1.0 / (1 << dz), 1.0 / (1 << dz), 0);
     }
+
+    Log::Info(Event::General, "tile = " + util::toString(tileID) + " terrainTile = " + util::toString(terrainTileID));
     return terrainRttPosMatrix;
 }
 
