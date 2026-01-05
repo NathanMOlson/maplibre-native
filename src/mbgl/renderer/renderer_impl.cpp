@@ -269,7 +269,7 @@ void Renderer::Impl::render(const RenderTree& renderTree, const std::shared_ptr<
                 [&](gfx::Drawable& drawable) { tileIDs.emplace_back(drawable.getTileID().value()); });
             for (const OverscaledTileID& tileID : tileIDs) {
                 auto singleTileLayerGroup = context.createTileLayerGroup(
-                    0, /*initialCapacity=*/1, layerGroupBase.getName());
+                    layerGroup.getLayerIndex(), /*initialCapacity=*/1, layerGroupBase.getName());
                 std::optional<UnwrappedTileID> terrainTileID;
                 RenderTargetPtr renderTarget = texturePool.getRenderTargetAncestorOrDescendant(tileID.toUnwrapped(),
                                                                                                terrainTileID);
