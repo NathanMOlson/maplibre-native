@@ -187,6 +187,9 @@ void Renderer::Impl::render(const RenderTree& renderTree, const std::shared_ptr<
     }
 
     observer->onWillStartRenderingFrame();
+    
+    const uint16_t tilesize = 512; // TODO;
+    TexturePool texturePool(tilesize);
 
     PaintParameters parameters{context,
                                pixelRatio,
@@ -199,6 +202,7 @@ void Renderer::Impl::render(const RenderTree& renderTree, const std::shared_ptr<
                                *staticData,
                                renderTree.getLineAtlas(),
                                renderTree.getPatternAtlas(),
+                               texturePool,
                                frameCount,
                                updateParameters->tileLodMinRadius,
                                updateParameters->tileLodScale,
@@ -212,14 +216,12 @@ void Renderer::Impl::render(const RenderTree& renderTree, const std::shared_ptr<
 
     RenderTargetPtr renderToTextureTarget;
 
-    const uint16_t tilesize = 512; // TODO;
-    TexturePool pool(tilesize);
     if (auto* terrain = orchestrator.getRenderTerrain()) {
         RenderSource* demSource = orchestrator.getRenderSource(terrain->getSourceID());
         auto renderTiles = demSource->getRawRenderTiles();
 
         for (const auto& renderTile : *renderTiles) {
-            pool.createRenderTarget(context, renderTile.id);
+            texturePool.createRenderTarget(context, renderTile.id);
         }
     }
 
@@ -252,12 +254,12 @@ void Renderer::Impl::render(const RenderTree& renderTree, const std::shared_ptr<
                                   renderTreeParameters.transformParams.state,
                                   updateParameters,
                                   renderTree,
-                                  pool);
+                                  texturePool);
     }
 
     orchestrator.processChanges();
-    orchestrator.addRenderTargets(pool);
-    orchestrator.moveLayerGroupsToTexturePool(pool);
+    orchestrator.addRenderTargets(texturePool);
+    orchestrator.moveLayerGroupsToTexturePool(texturePool);
 
     // Upload layer groups
     {

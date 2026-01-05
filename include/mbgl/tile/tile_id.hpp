@@ -1,7 +1,6 @@
 #pragma once
 
 #include <mbgl/util/constants.hpp>
-#include <mbgl/util/mat4.hpp>
 
 #include <cmath>
 #include <cstdint>
@@ -67,12 +66,6 @@ public:
     uint8_t overscaledZ;
     int16_t wrap;
     CanonicalTileID canonical;
-    /**
-     * This matrix is used during terrain's render-to-texture stage only.
-     * If the render-to-texture stage is active, this matrix will be present
-     * and should be used, otherwise this matrix will be null.
-     */
-    std::optional<mat4> terrainRttPosMatrix;
 };
 
 ::std::ostream& operator<<(::std::ostream& os, const OverscaledTileID& rhs);

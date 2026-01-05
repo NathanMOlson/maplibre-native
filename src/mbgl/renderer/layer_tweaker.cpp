@@ -25,6 +25,31 @@ bool LayerTweaker::checkTweakDrawable(const gfx::Drawable& drawable) const {
     return !tweaker || tweaker.get() == this;
 }
 
+mat4 getTerrainRttPosMatrix(const UnwrappedTileID& tileID, const UnwrappedTileID& terrainTileID) {
+    mat4 terrainRttPosMatrix;
+    if (tileID == terrainTileID) {
+        matrix::ortho(terrainRttPosMatrix, 0, util::EXTENT, util::EXTENT, 0, 0, 1);
+    } else if (tileID.canonical.z < terrainTileID.canonical.z) {
+        const int dz = terrainTileID.canonical.z - tileID.canonical.z;
+        const int dx = terrainTileID.canonical.x - (terrainTileID.canonical.x >> dz << dz);
+        const int dy = terrainTileID.canonical.y - (terrainTileID.canonical.y >> dz << dz);
+        const int size = util::EXTENT >> dz;
+        matrix::ortho(
+            terrainRttPosMatrix, 0, size, size, 0, 0, 1); // Note: we are using `size` instead of `EXTENT` here
+        matrix::translate(terrainRttPosMatrix, terrainRttPosMatrix, -dx * size, -dy * size, 0);
+        matrix::ortho(terrainRttPosMatrix, 0, util::EXTENT, util::EXTENT, 0, 0, 1);
+    } else if (tileID.canonical.isChildOf(terrainTileID.canonical)) {
+        const int dz = tileID.canonical.z - terrainTileID.canonical.z;
+        const int dx = tileID.canonical.x - (tileID.canonical.x >> dz << dz);
+        const int dy = tileID.canonical.y - (tileID.canonical.y >> dz << dz);
+        const int size = util::EXTENT >> dz;
+        matrix::ortho(terrainRttPosMatrix, 0, util::EXTENT, util::EXTENT, 0, 0, 1);
+        matrix::translate(terrainRttPosMatrix, terrainRttPosMatrix, dx * size, dy * size, 0);
+        matrix::scale(terrainRttPosMatrix, terrainRttPosMatrix, 1.0 / (1 << dz), 1.0 / (1 << dz), 0);
+    }
+    return terrainRttPosMatrix;
+}
+
 mat4 LayerTweaker::getTileMatrix(const OverscaledTileID& tileID,
                                  const PaintParameters& parameters,
                                  const std::array<float, 2>& translation,
@@ -33,8 +58,9 @@ mat4 LayerTweaker::getTileMatrix(const OverscaledTileID& tileID,
                                  bool inViewportPixelUnits,
                                  const gfx::Drawable& drawable,
                                  bool aligned) {
-    if (tileID.terrainRttPosMatrix) {
-        return tileID.terrainRttPosMatrix.value();
+    std::optional<UnwrappedTileID> terrainTileID;
+    if (parameters.texturePool.getRenderTargetAncestorOrDescendant(tileID.toUnwrapped(), terrainTileID)) {
+        return getTerrainRttPosMatrix(tileID.toUnwrapped(), *terrainTileID);
     }
     // from RenderTile::prepare
     mat4 tileMatrix;
