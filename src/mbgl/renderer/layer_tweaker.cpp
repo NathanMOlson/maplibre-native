@@ -50,7 +50,7 @@ mat4 getTerrainRttPosMatrix(const UnwrappedTileID& tileID, const UnwrappedTileID
     return terrainRttPosMatrix;
 }
 
-mat4 LayerTweaker::getTileMatrix(const OverscaledTileID& tileID,
+mat4 LayerTweaker::getTileMatrix(const UnwrappedTileID& tileID,
                                  const PaintParameters& parameters,
                                  const std::array<float, 2>& translation,
                                  style::TranslateAnchorType anchor,
@@ -59,12 +59,12 @@ mat4 LayerTweaker::getTileMatrix(const OverscaledTileID& tileID,
                                  const gfx::Drawable& drawable,
                                  bool aligned) {
     std::optional<UnwrappedTileID> terrainTileID;
-    if (parameters.texturePool.getRenderTargetAncestorOrDescendant(tileID.toUnwrapped(), terrainTileID)) {
-        return getTerrainRttPosMatrix(tileID.toUnwrapped(), *terrainTileID);
+    if (parameters.texturePool.getRenderTargetAncestorOrDescendant(tileID, terrainTileID)) {
+        return getTerrainRttPosMatrix(tileID, *terrainTileID);
     }
     // from RenderTile::prepare
     mat4 tileMatrix;
-    UnwrappedTileID unwrappedTileID = tileID.toUnwrapped();
+    UnwrappedTileID unwrappedTileID = tileID;
     parameters.state.matrixFor(/*out*/ tileMatrix, unwrappedTileID);
     if (const auto& origin{drawable.getOrigin()}; origin.has_value()) {
         matrix::translate(tileMatrix, tileMatrix, origin->x, origin->y, 0);

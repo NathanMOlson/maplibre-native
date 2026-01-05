@@ -68,7 +68,7 @@ void FillLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParameters
             return;
         }
 
-        const OverscaledTileID tileID = drawable.getTileID().value();
+        const UnwrappedTileID tileID = drawable.getTileID()->toUnwrapped();
 
         auto* binders = static_cast<FillBinders*>(drawable.getBinders());
         const auto* tile = drawable.getRenderTile();

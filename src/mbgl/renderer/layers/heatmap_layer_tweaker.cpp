@@ -55,7 +55,7 @@ void HeatmapLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintParamet
             return;
         }
 
-        const OverscaledTileID tileID = drawable.getTileID().value();
+        const UnwrappedTileID tileID = drawable.getTileID()->toUnwrapped();
 
         auto* binders = static_cast<HeatmapBinders*>(drawable.getBinders());
         const auto* tile = drawable.getRenderTile();

@@ -88,7 +88,7 @@ void BackgroundLayerTweaker::execute(LayerGroupBase& layerGroup, const PaintPara
         assert(hasPattern == (drawable.getShader() ==
                               context.getGenericShader(parameters.shaders, std::string(BackgroundPatternShaderName))));
 
-        const OverscaledTileID tileID = drawable.getTileID().value();
+        const UnwrappedTileID tileID = drawable.getTileID()->toUnwrapped();
         const auto matrix = getTileMatrix(
             tileID, parameters, {0.f, 0.f}, TranslateAnchorType::Viewport, false, false, drawable);
 
