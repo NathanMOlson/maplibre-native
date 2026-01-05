@@ -187,7 +187,7 @@ void Renderer::Impl::render(const RenderTree& renderTree, const std::shared_ptr<
     }
 
     observer->onWillStartRenderingFrame();
-    
+
     const uint16_t tilesize = 512; // TODO;
     TexturePool texturePool(tilesize);
 
@@ -213,8 +213,6 @@ void Renderer::Impl::render(const RenderTree& renderTree, const std::shared_ptr<
     const auto& sourceRenderItems = renderTree.getSourceRenderItems();
 
     const auto& layerRenderItems = renderTree.getLayerRenderItemMap();
-
-    RenderTargetPtr renderToTextureTarget;
 
     if (auto* terrain = orchestrator.getRenderTerrain()) {
         RenderSource* demSource = orchestrator.getRenderSource(terrain->getSourceID());
@@ -259,7 +257,34 @@ void Renderer::Impl::render(const RenderTree& renderTree, const std::shared_ptr<
 
     orchestrator.processChanges();
     orchestrator.addRenderTargets(texturePool);
-    orchestrator.moveLayerGroupsToTexturePool(texturePool);
+    // orchestrator.moveLayerGroupsToTexturePool(texturePool);
+    orchestrator.visitLayerGroups([&](LayerGroupBase& layerGroupBase) {
+        if (layerGroupBase.getName() == "terrain") {
+            return;
+        }
+        try {
+            TileLayerGroup& layerGroup = dynamic_cast<TileLayerGroup&>(layerGroupBase);
+            std::vector<OverscaledTileID> tileIDs;
+            layerGroup.visitDrawables(
+                [&](gfx::Drawable& drawable) { tileIDs.emplace_back(drawable.getTileID().value()); });
+            for (const OverscaledTileID& tileID : tileIDs) {
+                auto singleTileLayerGroup = context.createTileLayerGroup(
+                    0, /*initialCapacity=*/1, layerGroupBase.getName());
+                std::optional<UnwrappedTileID> terrainTileID;
+                RenderTargetPtr renderTarget = texturePool.getRenderTargetAncestorOrDescendant(tileID.toUnwrapped(),
+                                                                                               terrainTileID);
+                renderTarget->addLayerGroup(singleTileLayerGroup, /*replace=*/true);
+                std::vector<gfx::UniqueDrawable> drawables = layerGroup.removeDrawables(RenderPass::Translucent,
+                                                                                        tileID);
+                for (auto& drawable : drawables) {
+                    LayerTweakerPtr layerTweaker = drawable->getLayerTweaker();
+                    singleTileLayerGroup->addLayerTweaker(layerTweaker);
+                    singleTileLayerGroup->addDrawable(RenderPass::Translucent, tileID, std::move(drawable));
+                }
+            }
+        } catch (const std::bad_cast&) {
+        }
+    });
 
     // Upload layer groups
     {
