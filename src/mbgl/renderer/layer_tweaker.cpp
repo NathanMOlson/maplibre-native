@@ -47,8 +47,6 @@ mat4 getTerrainRttPosMatrix(const UnwrappedTileID& tileID, const UnwrappedTileID
         matrix::translate(terrainRttPosMatrix, terrainRttPosMatrix, dx * size, dy * size, 0);
         matrix::scale(terrainRttPosMatrix, terrainRttPosMatrix, 1.0 / (1 << dz), 1.0 / (1 << dz), 0);
     }
-
-    Log::Info(Event::General, "tile = " + util::toString(tileID) + " terrainTile = " + util::toString(terrainTileID));
     return terrainRttPosMatrix;
 }
 
