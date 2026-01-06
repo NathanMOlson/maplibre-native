@@ -37,7 +37,6 @@ mat4 getTerrainRttPosMatrix(const UnwrappedTileID& tileID, const UnwrappedTileID
         matrix::ortho(
             terrainRttPosMatrix, 0, size, size, 0, 0, 1); // Note: we are using `size` instead of `EXTENT` here
         matrix::translate(terrainRttPosMatrix, terrainRttPosMatrix, -dx * size, -dy * size, 0);
-        matrix::ortho(terrainRttPosMatrix, 0, util::EXTENT, util::EXTENT, 0, 0, 1);
     } else if (tileID.canonical.isChildOf(terrainTileID.canonical)) {
         const int dz = tileID.canonical.z - terrainTileID.canonical.z;
         const int dx = tileID.canonical.x - (tileID.canonical.x >> dz << dz);
