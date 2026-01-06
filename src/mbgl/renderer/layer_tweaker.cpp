@@ -56,9 +56,10 @@ mat4 LayerTweaker::getTileMatrix(const UnwrappedTileID& tileID,
                                  bool nearClipped,
                                  bool inViewportPixelUnits,
                                  const gfx::Drawable& drawable,
-                                 bool aligned) {
+                                 bool aligned,
+                                 bool renderToTerrain) {
     std::optional<UnwrappedTileID> terrainTileID;
-    if (parameters.texturePool.getRenderTargetAncestorOrDescendant(tileID, terrainTileID)) {
+    if (renderToTerrain && parameters.texturePool.getRenderTargetAncestorOrDescendant(tileID, terrainTileID)) {
         return getTerrainRttPosMatrix(tileID, *terrainTileID);
     }
     // from RenderTile::prepare

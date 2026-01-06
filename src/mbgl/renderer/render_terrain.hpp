@@ -183,8 +183,7 @@ private:
     RenderSource* demSource = nullptr;
 
     // Layer index (terrain renders early in 3D pass, use negative index)
-    // TEMP: Using positive index to render ON TOP for debugging visibility
-    static constexpr int32_t TERRAIN_LAYER_INDEX = 10000;
+    static constexpr int32_t TERRAIN_LAYER_INDEX = -1000;
 
     /**
      * @brief Create a DEM texture from DEMData
