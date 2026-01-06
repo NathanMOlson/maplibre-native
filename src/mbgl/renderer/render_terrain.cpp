@@ -80,7 +80,7 @@ void RenderTerrain::update(RenderOrchestrator& orchestrator,
 
     // Create layer group if we don't have one (including after rebuild)
     if (!layerGroup) {
-        if (auto layerGroup_ = context.createLayerGroup(TERRAIN_LAYER_INDEX, /*initialCapacity=*/1, "terrain")) {
+        if (auto layerGroup_ = context.createLayerGroup(TERRAIN_LAYER_INDEX, /*initialCapacity=*/1, "terrain", false)) {
             layerGroup = std::move(layerGroup_);
             activateLayerGroup(true, changes);
             Log::Info(Event::Render, "Created terrain layer group");

@@ -124,10 +124,14 @@ public:
     /// Create a tile layer group implementation
     virtual TileLayerGroupPtr createTileLayerGroup(int32_t layerIndex,
                                                    std::size_t initialCapacity,
-                                                   std::string name) = 0;
+                                                   std::string name,
+                                                   bool renderToTerrain) = 0;
 
     /// Create a layer group implementation
-    virtual LayerGroupPtr createLayerGroup(int32_t layerIndex, std::size_t initialCapacity, std::string name) = 0;
+    virtual LayerGroupPtr createLayerGroup(int32_t layerIndex,
+                                           std::size_t initialCapacity,
+                                           std::string name,
+                                           bool renderToTerrain) = 0;
 
     /// Create a texture
     virtual Texture2DPtr createTexture2D() = 0;

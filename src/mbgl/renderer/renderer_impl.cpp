@@ -258,10 +258,10 @@ void Renderer::Impl::render(const RenderTree& renderTree, const std::shared_ptr<
     orchestrator.processChanges();
     orchestrator.addRenderTargets(texturePool);
     orchestrator.visitLayerGroups([&](LayerGroupBase& layerGroupBase) {
-        if (layerGroupBase.getName() == "terrain") { // TODO
+        if (!layerGroupBase.shouldRenderToTerrain()) {
             return;
         }
-        if (layerGroupBase.getType() != LayerGroupBase::Type::TileLayerGroup) { // TODO
+        if (layerGroupBase.getType() != LayerGroupBase::Type::TileLayerGroup) {
             return;
         }
         TileLayerGroup& layerGroup = static_cast<TileLayerGroup&>(layerGroupBase);
@@ -275,7 +275,7 @@ void Renderer::Impl::render(const RenderTree& renderTree, const std::shared_ptr<
             bool layerGroupPrexists = singleTileLayerGroups.contains(terrainTileID.value());
             if (!layerGroupPrexists) {
                 singleTileLayerGroups[terrainTileID.value()] = context.createTileLayerGroup(
-                    layerGroup.getLayerIndex(), /*initialCapacity=*/1, layerGroupBase.getName());
+                    layerGroup.getLayerIndex(), /*initialCapacity=*/1, layerGroupBase.getName(), true);
             }
             TileLayerGroupPtr singleTileLayerGroup = singleTileLayerGroups[terrainTileID.value()];
             renderTarget->addLayerGroup(singleTileLayerGroup, /*replace=*/true);
