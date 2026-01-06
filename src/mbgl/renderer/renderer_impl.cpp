@@ -257,7 +257,6 @@ void Renderer::Impl::render(const RenderTree& renderTree, const std::shared_ptr<
 
     orchestrator.processChanges();
     orchestrator.addRenderTargets(texturePool);
-    // orchestrator.moveLayerGroupsToTexturePool(texturePool);
     orchestrator.visitLayerGroups([&](LayerGroupBase& layerGroupBase) {
         if (layerGroupBase.getName() == "terrain") {
             return;

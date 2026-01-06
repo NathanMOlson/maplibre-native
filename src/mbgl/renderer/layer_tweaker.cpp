@@ -64,14 +64,13 @@ mat4 LayerTweaker::getTileMatrix(const UnwrappedTileID& tileID,
     }
     // from RenderTile::prepare
     mat4 tileMatrix;
-    UnwrappedTileID unwrappedTileID = tileID;
-    parameters.state.matrixFor(/*out*/ tileMatrix, unwrappedTileID);
+    parameters.state.matrixFor(/*out*/ tileMatrix, tileID);
     if (const auto& origin{drawable.getOrigin()}; origin.has_value()) {
         matrix::translate(tileMatrix, tileMatrix, origin->x, origin->y, 0);
     }
     multiplyWithProjectionMatrix(/*in-out*/ tileMatrix, parameters, drawable, nearClipped, aligned);
     return RenderTile::translateVtxMatrix(
-        unwrappedTileID, tileMatrix, translation, anchor, parameters.state, inViewportPixelUnits);
+        tileID, tileMatrix, translation, anchor, parameters.state, inViewportPixelUnits);
 }
 
 void LayerTweaker::updateProperties(Immutable<style::LayerProperties> newProps) {

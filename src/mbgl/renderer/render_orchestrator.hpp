@@ -128,10 +128,6 @@ public:
         }
     }
 
-    void moveLayerGroupsToTarget(RenderTargetPtr);
-
-    void moveLayerGroupsToTexturePool(TexturePool& pool);
-
     void updateLayers(gfx::ShaderRegistry&,
                       gfx::Context&,
                       const TransformState&,

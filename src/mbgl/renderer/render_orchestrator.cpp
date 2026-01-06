@@ -1067,25 +1067,6 @@ void RenderOrchestrator::moveLayerGroupsToTarget(RenderTargetPtr renderTarget) {
     }
 }
 
-void RenderOrchestrator::moveLayerGroupsToTexturePool(TexturePool& pool) {
-    std::vector<LayerGroupBasePtr> layerGroupsToMove;
-    for (auto rit = layerGroupsByLayerIndex.rbegin(); rit != layerGroupsByLayerIndex.rend(); ++rit) {
-        auto layerGroup = rit->second;
-        if (layerGroup->getName() == "terrain") {
-            continue;
-        }
-        layerGroupsToMove.push_back(layerGroup);
-    }
-    for (auto layerGroup : layerGroupsToMove) {
-        if (removeLayerGroup(layerGroup)) {
-            Log::Info(Event::Render, "Moved layer " + layerGroup->getName());
-        } else {
-            Log::Info(Event::Render, "Failed to move layer " + layerGroup->getName());
-        }
-        pool.visitRenderTargets([&](RenderTargetPtr renderTarget) { renderTarget->addLayerGroup(layerGroup, true); });
-    }
-}
-
 void RenderOrchestrator::updateDebugLayerGroups(const RenderTree& renderTree, PaintParameters& parameters) {
     for (const RenderItem& item : renderTree.getSourceRenderItems()) {
         item.updateDebugDrawables(debugLayerGroups, parameters);

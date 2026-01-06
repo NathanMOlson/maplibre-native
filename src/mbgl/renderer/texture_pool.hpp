@@ -2,6 +2,7 @@
 
 #include <mbgl/tile/tile_id.hpp>
 #include <mbgl/renderer/render_target.hpp>
+#include <optional>
 
 namespace mbgl {
 class TexturePool {

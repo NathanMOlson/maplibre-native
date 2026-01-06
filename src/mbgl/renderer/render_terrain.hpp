@@ -68,7 +68,7 @@ public:
     void update(class RenderOrchestrator& orchestrator,
                 gfx::ShaderRegistry& shaders,
                 gfx::Context& context,
-                const TexturePool& pool,
+                const TexturePool& texturePool,
                 const TransformState& state,
                 const std::shared_ptr<UpdateParameters>& updateParameters,
                 const RenderTree& renderTree,
