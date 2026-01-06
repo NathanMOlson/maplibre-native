@@ -272,6 +272,9 @@ void Renderer::Impl::render(const RenderTree& renderTree, const std::shared_ptr<
             std::optional<UnwrappedTileID> terrainTileID;
             RenderTargetPtr renderTarget = texturePool.getRenderTargetAncestorOrDescendant(tileID.toUnwrapped(),
                                                                                            terrainTileID);
+            if (!renderTarget) {
+                continue;
+            }
             bool layerGroupPrexists = singleTileLayerGroups.contains(terrainTileID.value());
             if (!layerGroupPrexists) {
                 singleTileLayerGroups[terrainTileID.value()] = context.createTileLayerGroup(
