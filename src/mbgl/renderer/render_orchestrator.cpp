@@ -974,7 +974,7 @@ void RenderOrchestrator::updateLayers(gfx::ShaderRegistry& shaders,
                                       const TransformState& state,
                                       const std::shared_ptr<UpdateParameters>& updateParameters,
                                       const RenderTree& renderTree,
-                                      const TexturePool& pool) {
+                                      const TexturePool& texturePool) {
     MLN_TRACE_FUNC();
 
     const bool isMapModeContinuous = updateParameters->mode == MapMode::Continuous;
@@ -1006,7 +1006,7 @@ void RenderOrchestrator::updateLayers(gfx::ShaderRegistry& shaders,
 
     // Update terrain if enabled
     if (renderTerrain && renderTerrain->isEnabled()) {
-        renderTerrain->update(*this, shaders, context, pool, state, updateParameters, renderTree, changes);
+        renderTerrain->update(*this, shaders, context, texturePool, state, updateParameters, renderTree, changes);
     }
 
     addChanges(changes);
@@ -1039,32 +1039,13 @@ bool RenderOrchestrator::removeRenderTarget(const RenderTargetPtr& renderTarget)
     }
 }
 
-void RenderOrchestrator::addRenderTargets(const TexturePool& pool) {
-    pool.visitRenderTargets([&](const RenderTargetPtr& renderTarget) {
+void RenderOrchestrator::addRenderTargets(const TexturePool& texturePool) {
+    texturePool.visitRenderTargets([&](const RenderTargetPtr& renderTarget) {
         auto it = std::find(renderTargets.begin(), renderTargets.end(), renderTarget);
         if (it == renderTargets.end()) {
             renderTargets.emplace_back(renderTarget);
         }
     });
-}
-
-void RenderOrchestrator::moveLayerGroupsToTarget(RenderTargetPtr renderTarget) {
-    std::vector<LayerGroupBasePtr> layerGroupsToMove;
-    for (auto rit = layerGroupsByLayerIndex.rbegin(); rit != layerGroupsByLayerIndex.rend(); ++rit) {
-        auto layerGroup = rit->second;
-        if (layerGroup->getName() == "terrain") {
-            continue;
-        }
-        layerGroupsToMove.push_back(layerGroup);
-    }
-    for (auto layerGroup : layerGroupsToMove) {
-        if (removeLayerGroup(layerGroup)) {
-            Log::Info(Event::Render, "Moved layer " + layerGroup->getName());
-        } else {
-            Log::Info(Event::Render, "Failed to move layer " + layerGroup->getName());
-        }
-        renderTarget->addLayerGroup(layerGroup, true);
-    }
 }
 
 void RenderOrchestrator::updateDebugLayerGroups(const RenderTree& renderTree, PaintParameters& parameters) {

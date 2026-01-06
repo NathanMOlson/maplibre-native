@@ -133,13 +133,13 @@ public:
                       const TransformState&,
                       const std::shared_ptr<UpdateParameters>&,
                       const RenderTree&,
-                      const TexturePool& pool);
+                      const TexturePool& texturePool);
 
     void processChanges();
 
     bool addRenderTarget(RenderTargetPtr);
     bool removeRenderTarget(const RenderTargetPtr&);
-    void addRenderTargets(const TexturePool& pool);
+    void addRenderTargets(const TexturePool& texturePool);
 
     template <typename Func /* void(RenderTarget&) */>
     void visitRenderTargets(Func f) {
