@@ -7,6 +7,7 @@
 #include <mbgl/renderer/render_source.hpp>
 #include <mbgl/renderer/render_layer.hpp>
 #include <mbgl/renderer/render_static_data.hpp>
+#include <mbgl/renderer/render_target.hpp>
 #include <mbgl/renderer/render_tree.hpp>
 #include <mbgl/renderer/render_terrain.hpp>
 #include <mbgl/renderer/update_parameters.hpp>
@@ -972,7 +973,8 @@ void RenderOrchestrator::updateLayers(gfx::ShaderRegistry& shaders,
                                       gfx::Context& context,
                                       const TransformState& state,
                                       const std::shared_ptr<UpdateParameters>& updateParameters,
-                                      const RenderTree& renderTree) {
+                                      const RenderTree& renderTree,
+                                      const TexturePool& texturePool) {
     MLN_TRACE_FUNC();
 
     const bool isMapModeContinuous = updateParameters->mode == MapMode::Continuous;
@@ -1004,7 +1006,7 @@ void RenderOrchestrator::updateLayers(gfx::ShaderRegistry& shaders,
 
     // Update terrain if enabled
     if (renderTerrain && renderTerrain->isEnabled()) {
-        renderTerrain->update(*this, shaders, context, state, updateParameters, renderTree, changes);
+        renderTerrain->update(*this, shaders, context, texturePool, state, updateParameters, renderTree, changes);
     }
 
     addChanges(changes);
@@ -1035,6 +1037,15 @@ bool RenderOrchestrator::removeRenderTarget(const RenderTargetPtr& renderTarget)
     } else {
         return false;
     }
+}
+
+void RenderOrchestrator::addRenderTargets(const TexturePool& texturePool) {
+    texturePool.visitRenderTargets([&](const RenderTargetPtr& renderTarget) {
+        auto it = std::find(renderTargets.begin(), renderTargets.end(), renderTarget);
+        if (it == renderTargets.end()) {
+            renderTargets.emplace_back(renderTarget);
+        }
+    });
 }
 
 void RenderOrchestrator::updateDebugLayerGroups(const RenderTree& renderTree, PaintParameters& parameters) {

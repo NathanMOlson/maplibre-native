@@ -5,6 +5,7 @@
 #include <mbgl/renderer/renderer.hpp>
 #include <mbgl/renderer/render_source_observer.hpp>
 #include <mbgl/renderer/render_light.hpp>
+#include <mbgl/renderer/texture_pool.hpp>
 #include <mbgl/style/image.hpp>
 #include <mbgl/style/source.hpp>
 #include <mbgl/style/layer.hpp>
@@ -131,12 +132,14 @@ public:
                       gfx::Context&,
                       const TransformState&,
                       const std::shared_ptr<UpdateParameters>&,
-                      const RenderTree&);
+                      const RenderTree&,
+                      const TexturePool& texturePool);
 
     void processChanges();
 
     bool addRenderTarget(RenderTargetPtr);
     bool removeRenderTarget(const RenderTargetPtr&);
+    void addRenderTargets(const TexturePool& texturePool);
 
     template <typename Func /* void(RenderTarget&) */>
     void visitRenderTargets(Func f) {
