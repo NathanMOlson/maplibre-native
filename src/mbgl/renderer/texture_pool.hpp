@@ -13,7 +13,7 @@ public:
     std::shared_ptr<RenderTarget> getRenderTarget(const UnwrappedTileID& id) const;
     std::shared_ptr<RenderTarget> getRenderTargetAncestorOrDescendant(
         const UnwrappedTileID& id, std::optional<UnwrappedTileID>& terrainTileID) const;
-    void createRenderTarget(gfx::Context& context, const UnwrappedTileID& id);
+    void createRenderTarget(gfx::Context& context, const UnwrappedTileID& id, const Color& backgroundColor);
 
     template <typename Func /* void(std::shared_ptr<RenderTarget>&) */>
     void visitRenderTargets(Func f) {

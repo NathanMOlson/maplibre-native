@@ -219,7 +219,7 @@ void Renderer::Impl::render(const RenderTree& renderTree, const std::shared_ptr<
         auto renderTiles = demSource->getRawRenderTiles();
 
         for (const auto& renderTile : *renderTiles) {
-            texturePool.createRenderTarget(context, renderTile.id);
+            texturePool.createRenderTarget(context, renderTile.id, renderTreeParameters.backgroundColor);
         }
     }
 
