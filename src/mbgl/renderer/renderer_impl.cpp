@@ -261,36 +261,34 @@ void Renderer::Impl::render(const RenderTree& renderTree, const std::shared_ptr<
         if (layerGroupBase.getName() == "terrain") { // TODO
             return;
         }
-        try {
-            TileLayerGroup& layerGroup = dynamic_cast<TileLayerGroup&>(layerGroupBase);
-            std::vector<OverscaledTileID> tileIDs;
-            layerGroup.visitDrawables(
-                [&](gfx::Drawable& drawable) { tileIDs.emplace_back(drawable.getTileID().value()); });
-            std::map<UnwrappedTileID, TileLayerGroupPtr> singleTileLayerGroups;
-            for (const OverscaledTileID& tileID : tileIDs) {
-                std::optional<UnwrappedTileID> terrainTileID;
-                RenderTargetPtr renderTarget = texturePool.getRenderTargetAncestorOrDescendant(tileID.toUnwrapped(),
-                                                                                               terrainTileID);
-                bool layerGroupPrexists = singleTileLayerGroups.contains(terrainTileID.value());
-                if (!layerGroupPrexists) {
-                    singleTileLayerGroups[terrainTileID.value()] = context.createTileLayerGroup(
-                        layerGroup.getLayerIndex(), /*initialCapacity=*/1, layerGroupBase.getName());
-                }
-                TileLayerGroupPtr singleTileLayerGroup = singleTileLayerGroups[terrainTileID.value()];
-                renderTarget->addLayerGroup(singleTileLayerGroup, /*replace=*/true);
-                std::vector<gfx::UniqueDrawable> drawables = layerGroup.removeDrawables(RenderPass::Translucent,
-                                                                                        tileID);
+        if (layerGroupBase.getType() != LayerGroupBase::Type::TileLayerGroup) { // TODO
+            return;
+        }
+        TileLayerGroup& layerGroup = static_cast<TileLayerGroup&>(layerGroupBase);
+        std::vector<OverscaledTileID> tileIDs;
+        layerGroup.visitDrawables([&](gfx::Drawable& drawable) { tileIDs.emplace_back(drawable.getTileID().value()); });
+        std::map<UnwrappedTileID, TileLayerGroupPtr> singleTileLayerGroups;
+        for (const OverscaledTileID& tileID : tileIDs) {
+            std::optional<UnwrappedTileID> terrainTileID;
+            RenderTargetPtr renderTarget = texturePool.getRenderTargetAncestorOrDescendant(tileID.toUnwrapped(),
+                                                                                           terrainTileID);
+            bool layerGroupPrexists = singleTileLayerGroups.contains(terrainTileID.value());
+            if (!layerGroupPrexists) {
+                singleTileLayerGroups[terrainTileID.value()] = context.createTileLayerGroup(
+                    layerGroup.getLayerIndex(), /*initialCapacity=*/1, layerGroupBase.getName());
+            }
+            TileLayerGroupPtr singleTileLayerGroup = singleTileLayerGroups[terrainTileID.value()];
+            renderTarget->addLayerGroup(singleTileLayerGroup, /*replace=*/true);
+            std::vector<gfx::UniqueDrawable> drawables = layerGroup.removeDrawables(RenderPass::Translucent, tileID);
 
-                if (!drawables.empty()) {
-                    if (!layerGroupPrexists) {
-                        singleTileLayerGroup->addLayerTweaker(drawables[0]->getLayerTweaker());
-                    }
-                    for (auto& drawable : drawables) {
-                        singleTileLayerGroup->addDrawable(RenderPass::Translucent, tileID, std::move(drawable));
-                    }
+            if (!drawables.empty()) {
+                if (!layerGroupPrexists) {
+                    singleTileLayerGroup->addLayerTweaker(drawables[0]->getLayerTweaker());
+                }
+                for (auto& drawable : drawables) {
+                    singleTileLayerGroup->addDrawable(RenderPass::Translucent, tileID, std::move(drawable));
                 }
             }
-        } catch (const std::bad_cast&) {
         }
     });
 
