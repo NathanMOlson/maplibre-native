@@ -623,6 +623,8 @@ list(APPEND SRC_FILES
     ${PROJECT_SOURCE_DIR}/src/mbgl/renderer/sources/render_tile_source.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/renderer/sources/render_vector_source.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/renderer/sources/render_vector_source.hpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/renderer/sources/render_vector_collection_source.cpp
+    ${PROJECT_SOURCE_DIR}/src/mbgl/renderer/sources/render_vector_collection_source.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/renderer/source_state.cpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/renderer/source_state.hpp
     ${PROJECT_SOURCE_DIR}/src/mbgl/renderer/style_diff.cpp

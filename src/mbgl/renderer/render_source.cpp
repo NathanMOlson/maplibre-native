@@ -7,6 +7,7 @@
 #include <mbgl/renderer/sources/render_raster_source.hpp>
 #include <mbgl/renderer/sources/render_raster_dem_source.hpp>
 #include <mbgl/renderer/sources/render_vector_source.hpp>
+#include <mbgl/renderer/sources/render_vector_collection_source.hpp>
 #include <mbgl/renderer/sources/render_image_source.hpp>
 #include <mbgl/renderer/sources/render_custom_geometry_source.hpp>
 #include <mbgl/renderer/tile_parameters.hpp>
@@ -25,8 +26,8 @@ std::unique_ptr<RenderSource> RenderSource::create(const Immutable<Source::Impl>
     switch (impl->type) {
         case SourceType::Vector:
             // the TileSet isn't available yet, so we can't make different sources by format
-            return std::make_unique<RenderVectorSource>(staticImmutableCast<TileSource::Impl>(impl),
-                                                        std::move(threadPool_));
+            return std::make_unique<RenderVectorCollectionSource>(staticImmutableCast<TileSource::Impl>(impl),
+                                                                  std::move(threadPool_));
         case SourceType::Raster:
             return std::make_unique<RenderRasterSource>(staticImmutableCast<TileSource::Impl>(impl),
                                                         std::move(threadPool_));
