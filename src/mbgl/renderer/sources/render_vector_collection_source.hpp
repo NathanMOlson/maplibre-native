@@ -16,6 +16,7 @@ private:
                         bool needsRendering,
                         bool needsRelayout,
                         const TileParameters&);
+    RenderTiles getRenderTiles() const override;
 
 private:
     void update(Immutable<style::Source::Impl>,
@@ -23,8 +24,10 @@ private:
                 bool needsRendering,
                 bool needsRelayout,
                 const TileParameters&) final;
+    RenderTiles convertRenderTiles() const;
     std::optional<bool> isMLT;
     std::optional<Tileset> cachedTileset;
+    mutable RenderTiles convertedRenderTiles;
 };
 
 } // namespace mbgl

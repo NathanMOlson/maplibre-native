@@ -72,4 +72,24 @@ void RenderVectorCollectionSource::update(Immutable<style::Source::Impl> baseImp
     updateInternal(*cachedTileset, layers, needsRendering, needsRelayout, parameters);
 }
 
+RenderTiles RenderVectorCollectionSource::convertRenderTiles() const {
+    auto result = std::make_shared<std::vector<std::reference_wrapper<const RenderTile>>>();
+    for (const auto& renderTile : *renderTiles) {
+        result->emplace_back(renderTile);
+    }
+    return result;
+}
+
+RenderTiles RenderVectorCollectionSource::getRenderTiles() const {
+    if (!filteredRenderTiles) {
+        convertedRenderTiles = convertRenderTiles();
+        auto result = std::make_shared<std::vector<std::reference_wrapper<const RenderTile>>>();
+        for (const auto& renderTile : *convertedRenderTiles) {
+            result->emplace_back(renderTile);
+        }
+        filteredRenderTiles = std::move(result);
+    }
+    return filteredRenderTiles;
+}
+
 } // namespace mbgl
