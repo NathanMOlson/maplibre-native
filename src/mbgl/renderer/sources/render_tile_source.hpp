@@ -20,7 +20,7 @@ public:
     bool isLoaded() const override;
 
     std::unique_ptr<RenderItem> createRenderItem() override;
-    void prepare(const SourcePrepareParameters&) override;
+    virtual void prepare(const SourcePrepareParameters&) override;
     void updateFadingTiles() override;
     bool hasFadingTiles() const override;
 

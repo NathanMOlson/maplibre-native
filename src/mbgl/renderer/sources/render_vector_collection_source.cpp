@@ -5,6 +5,7 @@
 #include <mbgl/renderer/tile_parameters.hpp>
 #include <mbgl/tile/vector_mlt_tile.hpp>
 #include <mbgl/tile/vector_mvt_tile.hpp>
+#include <mbgl/tile/custom_geometry_tile.hpp>
 
 namespace mbgl {
 
@@ -12,7 +13,12 @@ using namespace style;
 
 RenderVectorCollectionSource::RenderVectorCollectionSource(Immutable<style::TileSource::Impl> impl_,
                                                            const TaggedScheduler& threadPool_)
-    : RenderTileSource(std::move(impl_), threadPool_) {}
+    : RenderTileSource(std::move(impl_), threadPool_),
+      loader([&](const CanonicalTileID&) {}, [&](const CanonicalTileID&) {}),
+      loaderActor({}) {
+    auto mb = std::make_shared<Mailbox>(*Scheduler::GetCurrent());
+    loaderActor = ActorRef<CustomTileLoader>(loader, mb);
+}
 
 void RenderVectorCollectionSource::updateInternal(const Tileset& tileset,
                                                   const std::vector<Immutable<style::LayerProperties>>& layers,
@@ -70,22 +76,46 @@ void RenderVectorCollectionSource::update(Immutable<style::Source::Impl> baseImp
     if (!cachedTileset) return;
 
     updateInternal(*cachedTileset, layers, needsRendering, needsRelayout, parameters);
+
+    tileParameters = std::make_unique<TileParameters>(parameters);
 }
 
-RenderTiles RenderVectorCollectionSource::convertRenderTiles() const {
-    auto result = std::make_shared<std::vector<std::reference_wrapper<const RenderTile>>>();
-    for (const auto& renderTile : *renderTiles) {
-        result->emplace_back(renderTile);
+void addTileData(CustomGeometryTile& superTile, const RenderTile&) {
+    mapbox::feature::feature_collection<double> features;
+    features.push_back(mapbox::feature::feature<double>{mapbox::geometry::point<double>(0, 0)});
+    superTile.setTileData(features);
+}
+
+RenderTiles RenderVectorCollectionSource::convertRenderTiles(const SourcePrepareParameters& parameters) const {
+    CustomGeometrySource::TileOptions options{
+        .tolerance = 0.375, .tileSize = util::tileSize_I, .buffer = 128, .clip = false, .wrap = false};
+    Immutable<CustomGeometrySource::TileOptions> tileOptions = makeMutable<CustomGeometrySource::TileOptions>(
+        std::move(options));
+    CustomGeometryTile superTile(
+        OverscaledTileID(0, 0, 0), baseImpl->id, *tileParameters, tileOptions, *loaderActor, nullptr);
+
+    for (const auto& tile : *renderTiles) {
+        addTileData(superTile, tile);
     }
+
+    renderTile = std::make_unique<mbgl::RenderTile>(superTile.id.toUnwrapped(), superTile);
+    renderTile->prepare(parameters);
+
+    auto result = std::make_shared<std::vector<std::reference_wrapper<const RenderTile>>>();
+    result->emplace_back(*renderTile);
     return result;
+}
+
+void RenderVectorCollectionSource::prepare(const SourcePrepareParameters& parameters) {
+    RenderTileSource::prepare(parameters);
+    convertedRenderTiles = convertRenderTiles(parameters);
 }
 
 RenderTiles RenderVectorCollectionSource::getRenderTiles() const {
     if (!filteredRenderTiles) {
-        convertedRenderTiles = convertRenderTiles();
         auto result = std::make_shared<std::vector<std::reference_wrapper<const RenderTile>>>();
-        for (const auto& renderTile : *convertedRenderTiles) {
-            result->emplace_back(renderTile);
+        for (const auto& tile : *convertedRenderTiles) {
+            result->emplace_back(tile);
         }
         filteredRenderTiles = std::move(result);
     }
