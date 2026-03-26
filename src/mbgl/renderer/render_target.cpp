@@ -13,6 +13,11 @@ namespace mbgl {
 RenderTarget::RenderTarget(gfx::Context& context_, const Size size, const gfx::TextureChannelDataType type)
     : context(context_) {
     offscreenTexture = context.createOffscreenTexture(size, type);
+    backgroundColor = Color{0.0f, 0.0f, 0.0f, 1.0f};
+}
+RenderTarget::RenderTarget(gfx::Context& context_, const Size size, const gfx::TextureChannelDataType type, const Color& backgroundColor_)
+    : context(context_), backgroundColor(backgroundColor_) {
+    offscreenTexture = context.createOffscreenTexture(size, type);
 }
 
 RenderTarget::~RenderTarget() {}
@@ -67,9 +72,13 @@ void RenderTarget::upload(gfx::UploadPass& uploadPass) {
 void RenderTarget::render(RenderOrchestrator& orchestrator, const RenderTree& renderTree, PaintParameters& parameters) {
     parameters.renderPass = parameters.encoder->createRenderPass("render target",
                                                                  {.renderable = *offscreenTexture,
-                                                                  .clearColor = Color{0.0f, 0.0f, 0.0f, 1.0f},
+                                                                  .clearColor = backgroundColor,
                                                                   .clearDepth = {},
                                                                   .clearStencil = {}});
+
+    const gfx::ScissorRect prevScissorRect = parameters.scissorRect;
+    const auto& size = getTexture()->getSize();
+    parameters.scissorRect = {.x = 0, .y = 0, .width = size.width, .height = size.height};
 
     // Run layer tweakers to update any dynamic elements
     parameters.currentLayer = 0;
@@ -104,6 +113,8 @@ void RenderTarget::render(RenderOrchestrator& orchestrator, const RenderTree& re
 
     parameters.renderPass.reset();
     parameters.encoder->present(*offscreenTexture);
+
+    parameters.scissorRect = prevScissorRect;
 }
 
 } // namespace mbgl

@@ -3,11 +3,13 @@
 #include <mbgl/renderer/render_pass.hpp>
 #include <mbgl/renderer/render_light.hpp>
 #include <mbgl/renderer/render_source.hpp>
+#include <mbgl/renderer/texture_pool.hpp>
 #include <mbgl/map/mode.hpp>
 #include <mbgl/map/transform_state.hpp>
 #include <mbgl/gfx/depth_mode.hpp>
 #include <mbgl/gfx/stencil_mode.hpp>
 #include <mbgl/gfx/color_mode.hpp>
+#include <mbgl/gfx/scissor_rect.hpp>
 #include <mbgl/util/mat4.hpp>
 
 #include <array>
@@ -57,10 +59,13 @@ public:
                     RenderStaticData&,
                     LineAtlas&,
                     PatternAtlas&,
+                    TexturePool&,
                     uint64_t frameCount,
                     double tileLodMinRadius,
                     double tileLodScale,
-                    double tileLodPitchThreshold);
+                    double tileLodPitchThreshold,
+                    TileLodMode tileLodMode,
+                    const gfx::ScissorRect&);
     ~PaintParameters();
 
     gfx::Context& context;
@@ -75,6 +80,7 @@ public:
     RenderStaticData& staticData;
     LineAtlas& lineAtlas;
     PatternAtlas& patternAtlas;
+    TexturePool& texturePool;
 
     RenderPass pass = RenderPass::Opaque;
     MapMode mapMode;
@@ -137,6 +143,9 @@ public:
     double tileLodMinRadius;
     double tileLodScale;
     double tileLodPitchThreshold;
+    TileLodMode tileLodMode;
+
+    gfx::ScissorRect scissorRect;
 };
 
 } // namespace mbgl

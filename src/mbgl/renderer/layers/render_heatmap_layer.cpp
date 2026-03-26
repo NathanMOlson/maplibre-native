@@ -181,7 +181,7 @@ void RenderHeatmapLayer::update(gfx::ShaderRegistry& shaders,
         activateRenderTarget(renderTarget, isRenderable, changes);
 
         // Set up tile layer group
-        auto tileLayerGroup = context.createTileLayerGroup(0, /*initialCapacity=*/64, getID());
+        auto tileLayerGroup = context.createTileLayerGroup(0, /*initialCapacity=*/64, getID(), true);
         if (!tileLayerGroup) {
             return;
         }
@@ -253,9 +253,29 @@ void RenderHeatmapLayer::update(gfx::ShaderRegistry& shaders,
             }
             return true;
         };
+#if MLN_RENDER_BACKEND_WEBGPU
+        bool anyUpdated = false;
+        bool skippedDrawables = false;
+        tileLayerGroup->visitDrawables(renderPass, tileID, [&](gfx::Drawable& drawable) {
+            if (updateExisting(drawable)) {
+                anyUpdated = true;
+            } else {
+                skippedDrawables = true;
+            }
+        });
+
+        if (!anyUpdated && skippedDrawables) {
+            removeTile(renderPass, tileID);
+        }
+
+        if (anyUpdated) {
+            continue;
+        }
+#else
         if (updateTile(renderPass, tileID, std::move(updateExisting))) {
             continue;
         }
+#endif
 
         if (!propertiesAsUniforms) {
             propertiesAsUniforms.emplace();
@@ -320,7 +340,7 @@ void RenderHeatmapLayer::update(gfx::ShaderRegistry& shaders,
 
     // Set up texture layer group
     if (!layerGroup) {
-        if (auto layerGroup_ = context.createLayerGroup(layerIndex, /*initialCapacity=*/1, getID())) {
+        if (auto layerGroup_ = context.createLayerGroup(layerIndex, /*initialCapacity=*/1, getID(), true)) {
             if (textureTweaker) {
                 layerGroup_->addLayerTweaker(textureTweaker);
             }

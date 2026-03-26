@@ -19,6 +19,7 @@
 
 #include <mbgl/gl/drawable_gl.hpp>
 #include <mbgl/gl/drawable_gl_builder.hpp>
+#include <mbgl/gl/dynamic_texture.hpp>
 #include <mbgl/gl/layer_group_gl.hpp>
 #include <mbgl/gl/uniform_buffer_gl.hpp>
 #include <mbgl/gl/texture2d.hpp>
@@ -463,6 +464,7 @@ void Context::resetState(gfx::DepthMode depthMode, gfx::ColorMode colorMode) {
     setStencilMode(gfx::StencilMode::disabled());
     setColorMode(colorMode);
     setCullFaceMode(gfx::CullFaceMode::disabled());
+    setScissorTest({0, 0, 0, 0});
 }
 
 bool Context::emplaceOrUpdateUniformBuffer(gfx::UniformBufferPtr& buffer,
@@ -495,7 +497,7 @@ void Context::unbindGlobalUniformBuffers(gfx::RenderPass&) const noexcept {
 void Context::setDirtyState() {
     MLN_TRACE_FUNC();
 
-    // Note: does not set viewport/scissorTest/bindFramebuffer to dirty
+    // Note: does not set viewport/bindFramebuffer to dirty
     // since they are handled separately in the view object.
     stencilFunc.setDirty();
     stencilMask.setDirty();
@@ -518,6 +520,7 @@ void Context::setDirtyState() {
     cullFace.setDirty();
     cullFaceSide.setDirty();
     cullFaceWinding.setDirty();
+    scissorTest.setDirty();
     program.setDirty();
     lineWidth.setDirty();
     activeTextureUnit.setDirty();
@@ -560,16 +563,22 @@ gfx::ShaderProgramBasePtr Context::getGenericShader(gfx::ShaderRegistry& shaders
     return std::static_pointer_cast<gfx::ShaderProgramBase>(shaderGroup->getOrCreateShader(*this, {}));
 }
 
-TileLayerGroupPtr Context::createTileLayerGroup(int32_t layerIndex, std::size_t initialCapacity, std::string name) {
+TileLayerGroupPtr Context::createTileLayerGroup(int32_t layerIndex,
+                                                std::size_t initialCapacity,
+                                                std::string name,
+                                                bool renderToTerrain) {
     MLN_TRACE_FUNC();
 
-    return std::make_shared<TileLayerGroupGL>(layerIndex, initialCapacity, std::move(name));
+    return std::make_shared<TileLayerGroupGL>(layerIndex, initialCapacity, std::move(name), renderToTerrain);
 }
 
-LayerGroupPtr Context::createLayerGroup(int32_t layerIndex, std::size_t initialCapacity, std::string name) {
+LayerGroupPtr Context::createLayerGroup(int32_t layerIndex,
+                                        std::size_t initialCapacity,
+                                        std::string name,
+                                        bool renderToTerrain) {
     MLN_TRACE_FUNC();
 
-    return std::make_shared<LayerGroupGL>(layerIndex, initialCapacity, std::move(name));
+    return std::make_shared<LayerGroupGL>(layerIndex, initialCapacity, std::move(name), renderToTerrain);
 }
 
 gfx::Texture2DPtr Context::createTexture2D() {
@@ -578,10 +587,24 @@ gfx::Texture2DPtr Context::createTexture2D() {
     return std::make_shared<gl::Texture2D>(*this);
 }
 
+gfx::DynamicTexturePtr Context::createDynamicTexture(Size size, gfx::TexturePixelType pixelType) {
+    MLN_TRACE_FUNC();
+
+    return std::make_shared<DynamicTexture>(*this, size, pixelType);
+}
+
 RenderTargetPtr Context::createRenderTarget(const Size size, const gfx::TextureChannelDataType type) {
     MLN_TRACE_FUNC();
 
     return std::make_shared<RenderTarget>(*this, size, type);
+}
+
+RenderTargetPtr Context::createRenderTarget(const Size size,
+                                            const gfx::TextureChannelDataType type,
+                                            const Color& backgroundColor) {
+    MLN_TRACE_FUNC();
+
+    return std::make_shared<RenderTarget>(*this, size, type, backgroundColor);
 }
 
 Framebuffer Context::createFramebuffer(const gfx::Texture2D& color) {
@@ -640,6 +663,10 @@ void Context::setCullFaceMode(const gfx::CullFaceMode& mode) {
     // Context::setDepthMode.
     cullFaceSide = mode.side;
     cullFaceWinding = mode.winding;
+}
+
+void Context::setScissorTest(const gfx::ScissorRect& rect) {
+    scissorTest = rect;
 }
 
 void Context::setDepthMode(const gfx::DepthMode& depth) {

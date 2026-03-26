@@ -98,7 +98,13 @@ public:
 
     gfx::Texture2DPtr createTexture2D() override;
 
+    gfx::DynamicTexturePtr createDynamicTexture(Size size, gfx::TexturePixelType pixelType) override;
+
     RenderTargetPtr createRenderTarget(const Size size, const gfx::TextureChannelDataType type) override;
+
+    RenderTargetPtr createRenderTarget(const Size size,
+                                       const gfx::TextureChannelDataType type,
+                                       const Color& backgroundColor) override;
 
     void resetState(gfx::DepthMode depthMode, gfx::ColorMode colorMode) override;
 
@@ -126,10 +132,10 @@ public:
                                                   const gfx::StencilMode&,
                                                   const gfx::Renderable&) const;
 
-    virtual bool emplaceOrUpdateUniformBuffer(gfx::UniformBufferPtr&,
-                                              const void* data,
-                                              std::size_t size,
-                                              bool persistent) override;
+    bool emplaceOrUpdateUniformBuffer(gfx::UniformBufferPtr&,
+                                      const void* data,
+                                      std::size_t size,
+                                      bool persistent) override;
 
     /// Get a reusable buffer containing the standard fixed tile vertices (+/- `util::EXTENT`)
     const BufferResource& getTileVertexBuffer();

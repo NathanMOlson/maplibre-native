@@ -13,6 +13,8 @@
 #include <mbgl/renderer/renderer_observer.hpp>
 #include <mbgl/renderer/render_static_data.hpp>
 #include <mbgl/renderer/render_tree.hpp>
+#include <mbgl/renderer/render_tile.hpp>
+#include <mbgl/renderer/texture_pool.hpp>
 #include <mbgl/renderer/update_parameters.hpp>
 #include <mbgl/shaders/program_parameters.hpp>
 #include <mbgl/util/convert.hpp>
@@ -107,6 +109,7 @@ void Renderer::Impl::render(const RenderTree& renderTree, const std::shared_ptr<
         if (!commandCaptureScope) {
             if (const auto& cmdQueue = mtlBackend.getCommandQueue()) {
                 if (const auto captureManager = NS::RetainPtr(MTL::CaptureManager::sharedCaptureManager())) {
+                    // NOLINTNEXTLINE(bugprone-assignment-in-if-condition)
                     if ((commandCaptureScope = NS::TransferPtr(captureManager->newCaptureScope(cmdQueue.get())))) {
                         const auto label = "Renderer::Impl frame=" + util::toString(frameCount);
                         commandCaptureScope->setLabel(NS::String::string(label.c_str(), NS::UTF8StringEncoding));
@@ -186,27 +189,58 @@ void Renderer::Impl::render(const RenderTree& renderTree, const std::shared_ptr<
 
     observer->onWillStartRenderingFrame();
 
-    PaintParameters parameters{context,
-                               pixelRatio,
-                               backend,
-                               renderTreeParameters.light,
-                               renderTreeParameters.mapMode,
-                               renderTreeParameters.debugOptions,
-                               renderTreeParameters.timePoint,
-                               renderTreeParameters.transformParams,
-                               *staticData,
-                               renderTree.getLineAtlas(),
-                               renderTree.getPatternAtlas(),
-                               frameCount,
-                               updateParameters->tileLodMinRadius,
-                               updateParameters->tileLodScale,
-                               updateParameters->tileLodPitchThreshold};
+    const uint16_t tilesize = 512; // TODO;
+    TexturePool texturePool(tilesize);
+
+    const TransformState& state = renderTreeParameters.transformParams.state;
+    const Size& size = staticData->backendSize;
+    const EdgeInsets& frustumOffset = state.getFrustumOffset();
+    const gfx::ScissorRect scissorRect = {
+        .x = static_cast<int32_t>(frustumOffset.left() * pixelRatio),
+#if MLN_RENDER_BACKEND_OPENGL
+        .y = static_cast<int32_t>(frustumOffset.bottom() * pixelRatio),
+#else
+        .y = static_cast<int32_t>(frustumOffset.top() * pixelRatio),
+#endif
+        .width = size.width - static_cast<uint32_t>((frustumOffset.left() + frustumOffset.right()) * pixelRatio),
+        .height = size.height - static_cast<uint32_t>((frustumOffset.top() + frustumOffset.bottom()) * pixelRatio),
+    };
+
+    PaintParameters parameters{
+        context,
+        pixelRatio,
+        backend,
+        renderTreeParameters.light,
+        renderTreeParameters.mapMode,
+        renderTreeParameters.debugOptions,
+        renderTreeParameters.timePoint,
+        renderTreeParameters.transformParams,
+        *staticData,
+        renderTree.getLineAtlas(),
+        renderTree.getPatternAtlas(),
+        texturePool,
+        frameCount,
+        updateParameters->tileLodMinRadius,
+        updateParameters->tileLodScale,
+        updateParameters->tileLodPitchThreshold,
+        updateParameters->tileLodMode,
+        scissorRect,
+    };
 
     parameters.symbolFadeChange = renderTreeParameters.symbolFadeChange;
     parameters.opaquePassCutoff = renderTreeParameters.opaquePassCutOff;
     const auto& sourceRenderItems = renderTree.getSourceRenderItems();
 
     const auto& layerRenderItems = renderTree.getLayerRenderItemMap();
+
+    if (auto* terrain = orchestrator.getRenderTerrain()) {
+        RenderSource* demSource = orchestrator.getRenderSource(terrain->getSourceID());
+        auto renderTiles = demSource->getRawRenderTiles();
+
+        for (const auto& renderTile : *renderTiles) {
+            texturePool.createRenderTarget(context, renderTile.id, renderTreeParameters.backgroundColor);
+        }
+    }
 
     // - UPLOAD PASS -------------------------------------------------------------------------------
     // Uploads all required buffers and images before we do any actual rendering.
@@ -232,11 +266,53 @@ void Renderer::Impl::render(const RenderTree& renderTree, const std::shared_ptr<
     // - LAYER GROUP UPDATE ------------------------------------------------------------------------
     // Updates all layer groups and process changes
     if (staticData && staticData->shaders) {
-        orchestrator.updateLayers(
-            *staticData->shaders, context, renderTreeParameters.transformParams.state, updateParameters, renderTree);
+        orchestrator.updateLayers(*staticData->shaders,
+                                  context,
+                                  renderTreeParameters.transformParams.state,
+                                  updateParameters,
+                                  renderTree,
+                                  texturePool);
     }
 
     orchestrator.processChanges();
+    orchestrator.addRenderTargets(texturePool);
+    orchestrator.visitLayerGroups([&](LayerGroupBase& layerGroupBase) {
+        if (!layerGroupBase.shouldRenderToTerrain()) {
+            return;
+        }
+        if (layerGroupBase.getType() != LayerGroupBase::Type::TileLayerGroup) {
+            return;
+        }
+        TileLayerGroup& layerGroup = static_cast<TileLayerGroup&>(layerGroupBase);
+        std::vector<OverscaledTileID> tileIDs;
+        layerGroup.visitDrawables([&](gfx::Drawable& drawable) { tileIDs.emplace_back(drawable.getTileID().value()); });
+        std::map<UnwrappedTileID, TileLayerGroupPtr> singleTileLayerGroups;
+        for (const OverscaledTileID& tileID : tileIDs) {
+            std::optional<UnwrappedTileID> terrainTileID;
+            RenderTargetPtr renderTarget = texturePool.getRenderTargetAncestorOrDescendant(tileID.toUnwrapped(),
+                                                                                           terrainTileID);
+            if (!renderTarget) {
+                continue;
+            }
+            bool layerGroupPrexists = singleTileLayerGroups.contains(terrainTileID.value());
+            if (!layerGroupPrexists) {
+                singleTileLayerGroups[terrainTileID.value()] = context.createTileLayerGroup(
+                    layerGroup.getLayerIndex(), /*initialCapacity=*/1, layerGroupBase.getName(), true);
+            }
+            TileLayerGroupPtr singleTileLayerGroup = singleTileLayerGroups[terrainTileID.value()];
+            renderTarget->addLayerGroup(singleTileLayerGroup, /*replace=*/true);
+            std::vector<gfx::UniqueDrawable> drawables = layerGroup.removeDrawables(RenderPass::Translucent, tileID);
+
+            if (!drawables.empty()) {
+                if (!layerGroupPrexists) {
+                    singleTileLayerGroup->addLayerTweaker(drawables[0]->getLayerTweaker());
+                }
+                for (auto& drawable : drawables) {
+                    singleTileLayerGroup->addDrawable(RenderPass::Translucent, tileID, std::move(drawable));
+                }
+            }
+        }
+    });
 
     // Upload layer groups
     {
@@ -462,7 +538,7 @@ void Renderer::Impl::render(const RenderTree& renderTree, const std::shared_ptr<
         renderTreeParameters.loaded ? RendererObserver::RenderMode::Full : RendererObserver::RenderMode::Partial,
         renderTreeParameters.needsRepaint,
         renderTreeParameters.placementChanged,
-        context.renderingStats());
+        context.threadSafeCopyRenderingStats());
 
     if (!renderTreeParameters.loaded) {
         renderState = RenderState::Partial;

@@ -243,8 +243,11 @@ void RenderSymbolLayer::prepare(const LayerPrepareParameters& params) {
                                                   .featureIndex = featureIndex,
                                                   .sourceId = baseImpl->source,
                                                   .sortKeyRange = sortKeyRange};
-                    auto sortPosition = std::upper_bound(
-                        placementData.cbegin(), placementData.cend(), layerData, [](const auto& lhs, const auto& rhs) {
+                    auto sortPosition = std::upper_bound( // NOLINT(modernize-use-ranges)
+                        placementData.cbegin(),
+                        placementData.cend(),
+                        layerData,
+                        [](const auto& lhs, const auto& rhs) {
                             assert(lhs.sortKeyRange && rhs.sortKeyRange);
                             return lhs.sortKeyRange->sortKey < rhs.sortKeyRange->sortKey;
                         });
@@ -447,7 +450,7 @@ void RenderSymbolLayer::update(gfx::ShaderRegistry& shaders,
 
     // Set up a layer group
     if (!layerGroup) {
-        if (auto layerGroup_ = context.createTileLayerGroup(layerIndex, /*initialCapacity=*/64, getID())) {
+        if (auto layerGroup_ = context.createTileLayerGroup(layerIndex, /*initialCapacity=*/64, getID(), false)) {
             setLayerGroup(std::move(layerGroup_), changes);
         }
     }
@@ -460,7 +463,7 @@ void RenderSymbolLayer::update(gfx::ShaderRegistry& shaders,
     const auto& getCollisionTileLayerGroup = [&] {
         if (!collisionTileLayerGroup) {
             collisionTileLayerGroup = context.createTileLayerGroup(
-                layerIndex, /*initialCapacity=*/64, getID() + "-collision");
+                layerIndex, /*initialCapacity=*/64, getID() + "-collision", false);
             if (collisionTileLayerGroup) {
                 activateLayerGroup(collisionTileLayerGroup, true, changes);
             }
@@ -546,7 +549,7 @@ void RenderSymbolLayer::update(gfx::ShaderRegistry& shaders,
         }
         setRenderTileBucketID(tileID, bucket.getID());
 
-        assert(bucket.paintProperties.find(getID()) != bucket.paintProperties.end());
+        assert(bucket.paintProperties.contains(getID()));
         const auto& bucketPaintProperties = bucket.paintProperties.at(getID());
 
         auto addCollisionDrawables = [&](const bool isText, const bool hasCollisionBox, const bool hasCollisionCircle) {

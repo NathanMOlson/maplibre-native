@@ -5,6 +5,7 @@
 #include <mbgl/tile/tile_id.hpp>
 #include <mbgl/gfx/vertex_buffer.hpp>
 #include <mbgl/gfx/index_buffer.hpp>
+#include <mbgl/renderer/texture_pool.hpp>
 
 #include <memory>
 #include <map>
@@ -67,6 +68,7 @@ public:
     void update(class RenderOrchestrator& orchestrator,
                 gfx::ShaderRegistry& shaders,
                 gfx::Context& context,
+                const TexturePool& texturePool,
                 const TransformState& state,
                 const std::shared_ptr<UpdateParameters>& updateParameters,
                 const RenderTree& renderTree,
@@ -181,8 +183,7 @@ private:
     RenderSource* demSource = nullptr;
 
     // Layer index (terrain renders early in 3D pass, use negative index)
-    // TEMP: Using positive index to render ON TOP for debugging visibility
-    static constexpr int32_t TERRAIN_LAYER_INDEX = 10000;
+    static constexpr int32_t TERRAIN_LAYER_INDEX = -1000;
 
     /**
      * @brief Create a DEM texture from DEMData
@@ -209,9 +210,10 @@ private:
      * @return Unique pointer to created drawable
      */
     std::unique_ptr<gfx::Drawable> createDrawableForTile(gfx::Context& context,
-                                                          gfx::ShaderRegistry& shaders,
-                                                          const OverscaledTileID& tileID,
-                                                          std::shared_ptr<gfx::Texture2D> demTexture);
+                                                         gfx::ShaderRegistry& shaders,
+                                                         const OverscaledTileID& tileID,
+                                                         std::shared_ptr<gfx::Texture2D> demTexture,
+                                                         std::shared_ptr<gfx::Texture2D> mapTexture);
 };
 
 } // namespace mbgl
